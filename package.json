@@ -1,0 +1,41 @@
+{
+  "name": "syncloungesocket",
+  "version": "1.0.0",
+  "description": "SyncLounge socket server",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ttshivers/syncloungesocket.git"
+  },
+  "keywords": [
+    "synclounge"
+  ],
+  "author": "Travis Shivers",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ttshivers/syncloungesocket/issues"
+  },
+  "homepage": "https://github.com/ttshivers/syncloungesocket#readme",
+  "devDependencies": {
+    "eslint": "^7.3.1",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-plugin-import": "^2.22.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "nconf": "^0.10.0",
+    "socket.io": "^2.3.0",
+    "url-join": "^4.0.1"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.1",
+    "utf-8-validate": "^5.0.2"
+  }
+}
