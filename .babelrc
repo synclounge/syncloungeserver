@@ -1,0 +1,13 @@
+{
+  "presets": [
+    [
+      "airbnb",
+      {
+        "targets": {
+          "node": true
+        },
+        "transformRuntime": false
+      }
+    ]
+  ]
+}

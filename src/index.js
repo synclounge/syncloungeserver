@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /* eslint-disable no-param-reassign */
 import urljoin from 'url-join';
 import express from 'express';
