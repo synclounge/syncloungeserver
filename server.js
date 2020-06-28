@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 import urljoin from 'url-join';
 import express from 'express';
 import cors from 'cors';
@@ -35,7 +36,7 @@ app.get('*', (req, res) => {
 const socketServer = io(server, {
   path: urljoin(config.get('baseurl'), '/socket.io'),
   serveClient: false,
-  cookie: false
+  cookie: false,
 });
 
 // Setup our router
@@ -334,7 +335,7 @@ socketServer.on('connection', (socket) => {
       socket.emit('flowerror', 'You aren\' connected to a room! Use join');
       return;
     }
-    // console.log('New message in channel ' + socket.selfUser.room + ' from ' + socket.selfUser.username + ' saying ' + msg)
+
     socket.broadcast.to(socket.selfUser.room).emit('new_message', {
       msg: msg.msg,
       user: {
