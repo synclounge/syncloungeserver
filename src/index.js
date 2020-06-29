@@ -29,14 +29,14 @@ server.listen(config.get('port'));
 
 app.use(cors());
 
-app.use(config.get('baseurl'), router);
+app.use(config.get('base_url'), router);
 
 app.get('*', (req, res) => {
   res.send('You\'ve connected to the SLServer, you\'re probably looking for the webapp.');
 });
 
 const socketServer = io(server, {
-  path: urljoin(config.get('baseurl'), '/socket.io'),
+  path: urljoin(config.get('base_url'), '/socket.io'),
   serveClient: false,
   cookie: false,
 });
@@ -403,4 +403,4 @@ socketServer.on('connection', (socket) => {
 });
 
 console.log('SyncLounge Server successfully started on port', config.get('port'));
-console.log('Running with base URL:', config.get('baseurl'));
+console.log('Running with base URL:', config.get('base_url'));

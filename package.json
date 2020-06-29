@@ -17,7 +17,9 @@
   "keywords": [
     "synclounge"
   ],
-  "author": "Travis Shivers",
+  "author": {
+    "name": "Travis Shivers"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ttshivers/syncloungesocket/issues"
