@@ -103,8 +103,8 @@ dist
 # TernJS port file
 .tern-port
 
-# Config file
-config.json
+# Settings file
+settings.json
 
 # Dist
 /dist
