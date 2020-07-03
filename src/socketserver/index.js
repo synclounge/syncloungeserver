@@ -7,6 +7,7 @@ server.on('connection', (socket) => {
 
   Object.entries(eventHandlers).forEach(([eventName, handler]) => {
     socket.on(eventName, (data) => {
+      console.log(data);
       handler({ socket, data });
     });
   });

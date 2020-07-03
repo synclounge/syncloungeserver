@@ -1,19 +1,19 @@
 import {
-  doesRoomExist, isUserInARoom, getRoomUserData, updateUserRtt,
+  doesRoomExist, isUserInARoom, getRoomUserData,
   getJoinData, isRoomPasswordCorrect, createRoom, addUserToRoom, isUserHost,
-  removeUserHost, getUserRoomId, isUserInRoom, updateUserMedia,
+  removeUserHost, getUserRoomId, isUserInRoom, updateUserMedia, makeUserHost,
 } from './state';
 import {
-  emitToRoomExcept, emitToSocket, makeUserHostAndAnnounce, removeUserAndUpdateRoom,
+  emitToRoom, emitToRoomExcept, emitToSocket, makeUserHostAndAnnounce, removeUserAndUpdateRoom,
 } from './socketactions';
 
 // TODO: maybe enable promise cancellation?? test if needed
 
 const onInitialPong = ({ socket, rtt }) => {
-  updateUserRtt({
-    socketId: socket.id,
-    rtt,
-  });
+  // updateUserRtt({
+  //   socketId: socket.id,
+  //   rtt,
+  // });
 };
 
 const getInitialSocketRtt = (socket) => {
@@ -32,38 +32,47 @@ const getInitialSocketRtt = (socket) => {
   });
 };
 
-const createAndJoin = ({
-  socket, roomPassword, isPartyPausingEnabled,
-}) => {
-  const roomId = createRoom({
-    roomId,
-    roomPassword,
-    isPartyPausingEnabled,
-  });
+const log = ({ socketId, message }) => {
+  console.log(socketId, message);
 };
 
 const join = ({
   socket, data: {
-    roomId, roomPassword, desiredUsername, thumb, state, time, media,
+    roomId, password, desiredUsername, desiredPartyPausingEnabled, thumb, playerProduct, state,
+    time, duration, media,
   },
 }) => {
+  log({ socketId: socket.id, message: `join "${roomId}"` });
   // // TODO: log
   // // TODO: validate timeline thign
 
   if (isUserInARoom(socket.id)) {
+    // TODO: remove listeners?
     removeUserAndUpdateRoom(socket.id);
   }
 
-  if (!isRoomPasswordCorrect({ roomId, roomPassword })) {
-    emitToSocket({
-      socketId: socket.id,
-      eventName: 'join-result',
-      data: {
-        success: false,
-        error: 'Password wrong',
-      },
+  const roomExists = doesRoomExist(roomId);
+
+  if (roomExists) {
+    if (!isRoomPasswordCorrect({ roomId, password })) {
+      emitToSocket({
+        socketId: socket.id,
+        eventName: 'joinResult',
+        data: {
+          success: false,
+          error: 'Password wrong',
+        },
+      });
+      return;
+    }
+  } else {
+    console.log('Creating room', roomId);
+    createRoom({
+      id: roomId,
+      password,
+      isPartyPausingEnabled: desiredPartyPausingEnabled,
     });
-    return;
+    // TODO: start ping thing
   }
 
   addUserToRoom({
@@ -71,12 +80,14 @@ const join = ({
     roomId,
     desiredUsername,
     thumb,
+    playerProduct,
   });
 
   updateUserMedia({
-    socketId: state.socketId,
+    socketId: socket.id,
     state,
     time,
+    duration,
     media,
   });
 
@@ -84,13 +95,14 @@ const join = ({
   emitToRoomExcept({
     roomId,
     exceptSocketId: socket.id,
-    eventName: 'user-joined',
+    eventName: 'userJoined',
     data: getRoomUserData(socket.id),
   });
 
+  console.log('joinResponse', getJoinData({ roomId, socketId: socket.id }));
   emitToSocket({
     socketId: socket.id,
-    eventName: 'join-result',
+    eventName: 'joinResult',
     data: {
       success: true,
       ...getJoinData({ roomId, socketId: socket.id }),
@@ -110,9 +122,19 @@ const onTransferHost = ({ socket, desiredHostId }) => {
     const roomId = getUserRoomId(socket.id);
     if (isUserInRoom({ roomId, socketId: desiredHostId })) {
       removeUserHost(socket.id);
+      makeUserHost(desiredHostId);
       makeUserHostAndAnnounce({
         roomId,
         desiredHostId,
+      });
+
+      emitToRoom({
+        roomId,
+        eventName: 'hostSwap',
+        data: {
+          oldHostId: socket.id,
+          newHostId: desiredHostId,
+        },
       });
     }
   }

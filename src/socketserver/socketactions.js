@@ -1,7 +1,7 @@
 import server from './server';
 
 import {
-  getRoomSocketIds, isUserHost, removeUser, getUserRoomName, isRoomEmpty, removeRoom,
+  getRoomSocketIds, isUserHost, removeUser, getUserRoomId, isRoomEmpty, removeRoom,
   getAnySocketIdInRoom, makeUserHost,
 } from './state';
 
@@ -10,26 +10,24 @@ export const emitToSocket = ({ socketId, eventName, data }) => {
 };
 
 export const emitToRoomExcept = ({
-  roomName, eventName, data, exceptSocketId,
+  roomId, eventName, data, exceptSocketId,
 }) => {
-  getRoomSocketIds(roomName)
+  getRoomSocketIds(roomId)
     .filter((socketId) => socketId !== exceptSocketId)
     .forEach((socketId) => {
       emitToSocket({ socketId, eventName, data });
     });
 };
 
-const emitToRoom = ({ roomName, eventName, data }) => {
-  getRoomSocketIds(roomName).forEach((socketId) => {
+export const emitToRoom = ({ roomId, eventName, data }) => {
+  getRoomSocketIds(roomId).forEach((socketId) => {
     emitToSocket({ socketId, eventName, data });
   });
 };
 
-export const makeUserHostAndAnnounce = ({ roomName, desiredHostId }) => {
-  makeUserHost({ roomName, socketId: desiredHostId });
-
+export const makeUserHostAndAnnounce = ({ roomId, desiredHostId }) => {
   emitToRoom({
-    roomName,
+    roomId,
     eventName: 'newHost',
     data: desiredHostId,
   });
@@ -37,21 +35,36 @@ export const makeUserHostAndAnnounce = ({ roomName, desiredHostId }) => {
 
 export const removeUserAndUpdateRoom = (socketId) => {
   const wasUserHost = isUserHost(socketId);
-  const roomName = getUserRoomName(socketId);
+  const roomId = getUserRoomId(socketId);
 
   removeUser(socketId);
 
-  if (isRoomEmpty(roomName)) {
-    removeRoom(roomName);
+  if (isRoomEmpty(roomId)) {
+    removeRoom(roomId);
     return;
   }
 
   if (wasUserHost) {
     // Make someone else host
-    const desiredHostId = getAnySocketIdInRoom(roomName);
-    makeUserHostAndAnnounce({
-      roomName,
-      desiredHostId,
+    const desiredHostId = getAnySocketIdInRoom(roomId);
+    makeUserHost(desiredHostId);
+    emitToRoom({
+      roomId,
+      eventName: 'userLeft',
+      data: {
+        id: socketId,
+        newHostId: desiredHostId,
+      },
     });
+
+    return;
   }
+
+  emitToRoom({
+    roomId,
+    eventName: 'userLeft',
+    data: {
+      id: socketId,
+    },
+  });
 };
