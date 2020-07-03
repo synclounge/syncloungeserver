@@ -1,8 +1,11 @@
 import {
   doesRoomExist, isUserInARoom, getRoomUserData, updateUserRtt,
-  getJoinData, removeUser, isRoomPasswordCorrect, createRoom, addUserToRoom,
+  getJoinData, isRoomPasswordCorrect, createRoom, addUserToRoom, isUserHost,
+  removeUserHost, getUserRoomName, isUserInRoom,
 } from './state';
-import { emitToRoomExcept, emitToSocket } from './socketactions';
+import {
+  emitToRoomExcept, emitToSocket, makeUserHostAndAnnounce, removeUserAndUpdateRoom,
+} from './socketactions';
 
 // TODO: maybe enable promise cancellation?? test if needed
 
@@ -39,9 +42,7 @@ const join = ({
   // // TODO: validate timeline thign
 
   if (isUserInARoom(socket.id)) {
-    // If this user has joined before (which they shouldn't without leaving)
-    // TODO: disconnect stuff and remove
-    // TODO: uh like remove everythign and event handlers
+    removeUserAndUpdateRoom(socket.id);
   }
 
   const roomExists = doesRoomExist(roomName);
@@ -94,17 +95,28 @@ const join = ({
   });
 };
 
-
-
 const disconnect = ({ socket }) => {
   console.log('disconnect');
   if (isUserInARoom(socket.id)) {
-    removeUser(socket.id);
+    removeUserAndUpdateRoom(socket.id);
+  }
+};
 
+const onTransferHost = ({ socket, desiredHostId }) => {
+  if (isUserHost(socket.id)) {
+    const roomName = getUserRoomName(socket.id);
+    if (isUserInRoom({ roomName, socketId: desiredHostId })) {
+      removeUserHost(socket.id);
+      makeUserHostAndAnnounce({
+        roomName,
+        desiredHostId,
+      });
+    }
   }
 };
 
 export default {
   join,
   disconnect,
+  onTransferHost,
 };

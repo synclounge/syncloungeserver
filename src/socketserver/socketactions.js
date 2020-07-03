@@ -25,8 +25,14 @@ const emitToRoom = ({ roomName, eventName, data }) => {
   });
 };
 
-export const transferHost = ({ roomName, desiredHostId }) => {
+export const makeUserHostAndAnnounce = ({ roomName, desiredHostId }) => {
   makeUserHost({ roomName, socketId: desiredHostId });
+
+  emitToRoom({
+    roomName,
+    eventName: 'newHost',
+    data: desiredHostId,
+  });
 };
 
 export const removeUserAndUpdateRoom = (socketId) => {
@@ -43,15 +49,9 @@ export const removeUserAndUpdateRoom = (socketId) => {
   if (wasUserHost) {
     // Make someone else host
     const desiredHostId = getAnySocketIdInRoom(roomName);
-    transferHost({
+    makeUserHostAndAnnounce({
       roomName,
       desiredHostId,
-    });
-
-    emitToRoom({
-      roomName,
-      eventName: 'newHost',
-      data: desiredHostId,
     });
   }
 };

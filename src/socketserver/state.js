@@ -118,3 +118,9 @@ export const getAnySocketIdInRoom = (roomName) => rooms.get(roomName).users.keys
 export const makeUserHost = ({ roomName, socketId }) => {
   rooms.get(roomName).users.get(socketId).isHost = true;
 };
+
+export const removeUserHost = (socketId) => {
+  rooms.get(getUserRoomName(socketId)).users.get(socketId).isHost = false;
+};
+
+export const isUserInRoom = ({ roomName, socketId }) => rooms.get(roomName).users.has(socketId);
