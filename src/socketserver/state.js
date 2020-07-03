@@ -1,9 +1,13 @@
-import { getNumberFromUsername } from './utils';
+import { getNumberFromUsername, guid } from './utils';
 
 const rooms = new Map();
-
 // Map from socket id to room name
-const socketRoomName = new Map();
+const socketRoomId = new Map();
+
+export const getUserRoomId = (socketId) => socketRoomId.get(socketId);
+
+const getInternalUserRoomData = (socketId) => rooms.get(getUserRoomId(socketId))
+  .users.get(socketId);
 
 const getUniqueUsername = ({ users, desiredUsername }) => {
   if (!users.has(desiredUsername)) {
@@ -22,47 +26,62 @@ const getUniqueUsername = ({ users, desiredUsername }) => {
   return `${desiredUsername}(1)`;
 };
 
-const updateUserTimeline = ({ socketId, timeline, plexClientLatency }) => {
-  const userRoomData = rooms.get(socketRoomName.get(socketId)).users.get(socketId);
-  userRoomData.timeline = timeline;
-  userRoomData.plexClientLatency = plexClientLatency;
-  userRoomData.timelineReceivedAt = Date.now();
+export const updatePlayerState = ({ socketId, state, time }) => {
+  const userRoomData = getInternalUserRoomData(socketId);
+  userRoomData.state = state;
+  userRoomData.time = time;
+  userRoomData.updatedAt = Date.now();
+};
+
+export const updateUserMedia = ({
+  socketId, state, time, media,
+}) => {
+  const userRoomData = getInternalUserRoomData(socketId);
+  userRoomData.media = media;
+  updatePlayerState({ socketId, state, time });
 };
 
 export const addUserToRoom = ({
-  socketId, roomName, desiredUsername, thumb, timeline, plexClientLatency,
+  socketId, roomId, desiredUsername, thumb,
 }) => {
-  const { users } = rooms.get(roomName);
+  const { users } = rooms.get(roomId);
 
   users.set(socketId, {
     username: getUniqueUsername({ users, desiredUsername }),
     thumb,
     isHost: users.size <= 0,
   });
-
-  updateUserTimeline({
-    socketId,
-    timeline,
-    plexClientLatency,
-  });
 };
 
-export const isRoomPasswordCorrect = ({ roomName, roomPassword }) => roomPassword
-  === rooms.get(roomName).password;
+export const isRoomPasswordCorrect = ({ roomId, roomPassword }) => roomPassword
+  === rooms.get(roomId).password;
 
-export const createRoom = ({ roomName, roomPassword, isPartyPausingEnabled }) => {
-  rooms.set(roomName, {
-    password: roomPassword,
+const getNewRoomId = () => {
+  let name = guid();
+
+  while (rooms.has(name)) {
+    name = guid();
+  }
+
+  return name;
+};
+
+export const createRoom = ({ password, isPartyPausingEnabled }) => {
+  const id = getNewRoomId();
+  rooms.set(id, {
+    password,
     isPartyPausingEnabled,
     users: new Map(),
   });
+
+  return id;
 };
 
-export const isUserInARoom = (socketId) => socketRoomName.has(socketId);
+export const isUserInARoom = (socketId) => socketRoomId.has(socketId);
 
-export const doesRoomExist = (roomName) => rooms.has(roomName);
+export const doesRoomExist = (roomId) => rooms.has(roomId);
 
-export const getRoomSocketIds = (roomName) => [...rooms.get(roomName).users.keys()];
+export const getRoomSocketIds = (roomId) => [...rooms.get(roomId).users.keys()];
 
 const formatUserData = ({ id, timelineReceivedAt, ...rest }) => ({
   ...rest,
@@ -70,57 +89,54 @@ const formatUserData = ({ id, timelineReceivedAt, ...rest }) => ({
   id,
 });
 
-export const getRoomUserData = ({ roomName, socketId }) => formatUserData({
+export const getRoomUserData = (socketId) => formatUserData({
   id: socketId,
-  ...rooms.get(roomName).users.get(socketId),
+  ...getInternalUserRoomData(socketId),
 });
 
-const getOtherUserData = ({ roomName, exceptSocketId }) => [...rooms.get(roomName).users]
+const getOtherUserData = ({ roomId, exceptSocketId }) => [...rooms.get(roomId).users]
   .filter(([socketId]) => socketId !== exceptSocketId)
   .map(([id, data]) => formatUserData({ id, ...data }));
 
-export const getJoinData = ({ roomName, socketId }) => {
-  const { username, isHost } = rooms.get(roomName).users.get(socketId);
+export const getJoinData = ({ roomId, socketId }) => {
+  const { username, isHost } = getInternalUserRoomData(socketId);
 
   return {
-    isPartyPausingEnabled: rooms.get(roomName).isPartyPausingEnabled,
+    isPartyPausingEnabled: rooms.get(roomId).isPartyPausingEnabled,
     user: {
       id: socketId,
       username,
       isHost,
     },
-    users: getOtherUserData({ roomName, exceptSocketId: socketId }),
+    users: getOtherUserData({ roomId, exceptSocketId: socketId }),
   };
 };
 
-export const updateUserRtt = ({ socketId, rtt }) => {
+const updateUserRtt = ({ socketId, rtt }) => {
   // TODO: do this ugh
 };
 
 export const removeUser = (socketId) => {
-  rooms.delete(socketRoomName.get(socketId));
-  socketRoomName.delete(socketId);
+  rooms.delete(socketRoomId.get(socketId));
+  socketRoomId.delete(socketId);
 };
 
-export const removeRoom = (roomName) => {
-  rooms.delete(roomName);
+export const removeRoom = (roomId) => {
+  rooms.delete(roomId);
 };
 
-export const isUserHost = (socketId) => rooms.get(socketRoomName.get(socketId))
-  .users.get(socketId).isHost;
+export const isUserHost = (socketId) => getInternalUserRoomData(socketId).isHost;
 
-export const getUserRoomName = (socketId) => socketRoomName.get(socketId);
+export const isRoomEmpty = (roomId) => rooms.get(roomId).users <= 0;
 
-export const isRoomEmpty = (roomName) => rooms.get(roomName).users <= 0;
+export const getAnySocketIdInRoom = (roomId) => rooms.get(roomId).users.keys().next().value;
 
-export const getAnySocketIdInRoom = (roomName) => rooms.get(roomName).users.keys().next().value;
-
-export const makeUserHost = ({ roomName, socketId }) => {
-  rooms.get(roomName).users.get(socketId).isHost = true;
+export const makeUserHost = ({ roomId, socketId }) => {
+  rooms.get(roomId).users.get(socketId).isHost = true;
 };
 
 export const removeUserHost = (socketId) => {
-  rooms.get(getUserRoomName(socketId)).users.get(socketId).isHost = false;
+  getInternalUserRoomData(socketId).isHost = false;
 };
 
-export const isUserInRoom = ({ roomName, socketId }) => rooms.get(roomName).users.has(socketId);
+export const isUserInRoom = ({ roomId, socketId }) => rooms.get(roomId).users.has(socketId);
