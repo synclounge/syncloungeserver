@@ -155,7 +155,9 @@ export const updateSocketLatency = (socketId) => {
 
 export const generateAndSetSocketLatencySecret = (socketId) => {
   const secret = guid();
-  socketLatencyData.get(socketId).secret = secret;
+  const latencyData = socketLatencyData.get(socketId);
+  latencyData.secret = secret;
+  latencyData.sentAt = Date.now();
   return secret;
 };
 

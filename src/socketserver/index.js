@@ -16,6 +16,7 @@ const server = io({
 });
 
 const emitToSocket = ({ socketId, eventName, data }) => {
+  // console.log(data);
   server.to(socketId).emit(eventName, data);
 };
 
@@ -226,7 +227,7 @@ const emitPlayerStateUpdateToRoom = (socketId) => {
   } = getRoomUserData(socketId);
 
   emitAdjustedUserDataToRoom({
-    eventName: 'mediaUpdate',
+    eventName: 'playerStateUpdate',
     exceptSocketId: socketId,
     userData: {
       updatedAt,
@@ -257,7 +258,7 @@ const emitMediaUpdateToRoom = (socketId) => {
   } = getRoomUserData(socketId);
 
   emitAdjustedUserDataToRoom({
-    eventName: 'playerStateUpdate',
+    eventName: 'mediaUpdate',
     exceptSocketId: socketId,
     userData: {
       updatedAt,
@@ -324,7 +325,7 @@ const sendMessage = ({ socket, data: text }) => {
 };
 
 server.on('connection', (socket) => {
-  console.log('connection:', socket.conn.remoteAddress);
+  log({ socketId: socket.id, message: `connection "${socket.conn.remoteAddress}"` });
   initSocketLatencyData(socket.id);
   sendPing(socket.id);
 
