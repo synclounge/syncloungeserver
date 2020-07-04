@@ -7,7 +7,9 @@ const socketLatencyData = new Map();
 
 export const getUserRoomId = (socketId) => socketRoomId.get(socketId);
 
-const getInternalUserRoomData = (socketId) => rooms.get(getUserRoomId(socketId))
+export const getUserRoom = (socketId) => rooms.get(getUserRoomId(socketId));
+
+export const getRoomUserData = (socketId) => getUserRoom(socketId)
   .users.get(socketId);
 
 const getUniqueUsername = ({ usernames, desiredUsername }) => {
@@ -27,24 +29,26 @@ const getUniqueUsername = ({ usernames, desiredUsername }) => {
   return `${desiredUsername}(1)`;
 };
 
-export const updatePlayerState = ({
+export const getSocketLatency = (socketId) => socketLatencyData.get(socketId).rtt / 2;
+
+export const updateUserPlayerState = ({
   socketId, state, time, duration,
 }) => {
-  const userRoomData = getInternalUserRoomData(socketId);
+  const userRoomData = getRoomUserData(socketId);
   userRoomData.state = state;
-  userRoomData.time = time;
+  // Adjust time by sender's latency
+  userRoomData.time = state === 'playing'
+    ? time + getSocketLatency(socketId)
+    : time;
   userRoomData.duration = duration;
   userRoomData.updatedAt = Date.now();
 };
 
 export const updateUserMedia = ({
-  socketId, state, time, duration, media,
+  socketId, media,
 }) => {
-  const userRoomData = getInternalUserRoomData(socketId);
+  const userRoomData = getRoomUserData(socketId);
   userRoomData.media = media;
-  updatePlayerState({
-    socketId, state, time, duration,
-  });
 };
 
 export const addUserToRoom = ({
@@ -59,17 +63,19 @@ export const addUserToRoom = ({
     username: getUniqueUsername({ usernames, desiredUsername }),
     thumb,
     playerProduct,
-    isHost: users.size <= 0,
   });
 };
 
 export const isRoomPasswordCorrect = ({ roomId, password }) => password
   === rooms.get(roomId).password;
 
-export const createRoom = ({ id, password, isPartyPausingEnabled }) => {
+export const createRoom = ({
+  id, password, isPartyPausingEnabled, hostId,
+}) => {
   rooms.set(id, {
     password,
     isPartyPausingEnabled,
+    hostId,
     users: new Map(),
   });
 };
@@ -80,35 +86,35 @@ export const doesRoomExist = (roomId) => rooms.has(roomId);
 
 export const getRoomSocketIds = (roomId) => [...rooms.get(roomId).users.keys()];
 
-const formatUserData = ({
-  updatedAt, state, time, ...rest
+export const formatUserData = ({
+  recipientId, updatedAt, state, time, ...rest
 }) => ({
   ...rest,
   state,
   // Adjust time by age if playing
-  time: state === 'playing' ? time + Date.now() - updatedAt : time,
-});
-
-export const getRoomUserData = (socketId) => formatUserData({
-  id: socketId,
-  ...getInternalUserRoomData(socketId),
+  // TODO: adjust time by recipient's latency
+  time: state === 'playing'
+    ? time + getSocketLatency(recipientId) + Date.now() - updatedAt
+    : time,
 });
 
 const getOtherUserData = ({ roomId, exceptSocketId }) => Object.fromEntries(
   [...rooms.get(roomId).users]
     .filter(([socketId]) => socketId !== exceptSocketId)
-    .map(([id, data]) => ([id, formatUserData(data)])),
+    .map(([id, data]) => ([id, formatUserData({ recipientId: exceptSocketId, ...data })])),
 );
 
+export const getRoomHostId = (roomId) => rooms.get(roomId).hostId;
+
 export const getJoinData = ({ roomId, socketId }) => {
-  const { username, isHost } = getInternalUserRoomData(socketId);
+  const { username } = getRoomUserData(socketId);
 
   return {
     isPartyPausingEnabled: rooms.get(roomId).isPartyPausingEnabled,
+    hostId: getRoomHostId(roomId),
     user: {
       id: socketId,
       username,
-      isHost,
     },
     users: getOtherUserData({ roomId, exceptSocketId: socketId }),
   };
@@ -123,18 +129,14 @@ export const removeRoom = (roomId) => {
   rooms.delete(roomId);
 };
 
-export const isUserHost = (socketId) => getInternalUserRoomData(socketId).isHost;
+export const isUserHost = (socketId) => getUserRoom(socketId).hostId === socketId;
 
 export const isRoomEmpty = (roomId) => rooms.get(roomId).users.size <= 0;
 
 export const getAnySocketIdInRoom = (roomId) => rooms.get(roomId).users.keys().next().value;
 
 export const makeUserHost = (socketId) => {
-  getInternalUserRoomData(socketId).isHost = false;
-};
-
-export const removeUserHost = (socketId) => {
-  getInternalUserRoomData(socketId).isHost = false;
+  getUserRoom(socketId).hostId = socketId;
 };
 
 export const isUserInRoom = ({ roomId, socketId }) => rooms.get(roomId).users.has(socketId);
@@ -163,4 +165,14 @@ export const setSocketLatencyIntervalId = ({ socketId, intervalId }) => {
 
 export const doesSocketHaveRtt = (socketId) => socketLatencyData.get(socketId).rtt != null;
 
-export const initSocketLatencyData = (socketId) => socketLatencyData.set(socketId, {});
+export const initSocketLatencyData = (socketId) => {
+  socketLatencyData.set(socketId, {});
+};
+
+export const removeSocketLatencyData = (socketId) => {
+  socketLatencyData.delete(socketId);
+};
+
+export const clearSocketLatencyInterval = (socketId) => {
+  clearInterval(socketLatencyData.get(socketId).intervalId);
+};

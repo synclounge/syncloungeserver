@@ -1,11 +1,11 @@
 import io from 'socket.io';
 import {
-  doesRoomExist, isUserInARoom, getRoomUserData,
-  getJoinData, isRoomPasswordCorrect, createRoom, addUserToRoom, isUserHost,
-  removeUserHost, getUserRoomId, isUserInRoom, updateUserMedia, makeUserHost, updatePlayerState,
+  doesRoomExist, isUserInARoom, getRoomUserData, isUserHost, removeSocketLatencyData,
+  getJoinData, isRoomPasswordCorrect, createRoom, addUserToRoom, clearSocketLatencyInterval,
+  getUserRoomId, isUserInRoom, updateUserMedia, makeUserHost, updateUserPlayerState,
   getSocketPingSecret, updateSocketLatency, setSocketLatencyIntervalId, doesSocketHaveRtt,
   getRoomSocketIds, removeUser, isRoomEmpty, removeRoom, getAnySocketIdInRoom,
-  generateAndSetSocketLatencySecret, initSocketLatencyData,
+  generateAndSetSocketLatencySecret, initSocketLatencyData, formatUserData, getRoomHostId,
 } from './state';
 
 const server = io({
@@ -15,11 +15,11 @@ const server = io({
   transports: ['websockets', 'polling'],
 });
 
-export const emitToSocket = ({ socketId, eventName, data }) => {
+const emitToSocket = ({ socketId, eventName, data }) => {
   server.to(socketId).emit(eventName, data);
 };
 
-export const emitToUserRoomExcept = ({
+const emitToUserRoomExcept = ({
   eventName, data, exceptSocketId,
 }) => {
   getRoomSocketIds(getUserRoomId(exceptSocketId))
@@ -29,22 +29,21 @@ export const emitToUserRoomExcept = ({
     });
 };
 
-export const emitToRoom = ({ roomId, eventName, data }) => {
+const emitToRoom = ({ roomId, eventName, data }) => {
   getRoomSocketIds(roomId).forEach((socketId) => {
     emitToSocket({ socketId, eventName, data });
   });
 };
 
-export const makeUserHostAndAnnounce = ({ roomId, desiredHostId }) => {
+const announceNewHost = ({ roomId, hostId }) => {
   emitToRoom({
     roomId,
     eventName: 'newHost',
-    data: desiredHostId,
+    data: hostId,
   });
 };
 
-export const removeUserAndUpdateRoom = (socketId) => {
-  const wasUserHost = isUserHost(socketId);
+const removeUserAndUpdateRoom = (socketId) => {
   const roomId = getUserRoomId(socketId);
 
   removeUser(socketId);
@@ -54,7 +53,7 @@ export const removeUserAndUpdateRoom = (socketId) => {
     return;
   }
 
-  if (wasUserHost) {
+  if (getRoomHostId(roomId)) {
     // Make someone else host
     const desiredHostId = getAnySocketIdInRoom(roomId);
     makeUserHost(desiredHostId);
@@ -79,7 +78,7 @@ export const removeUserAndUpdateRoom = (socketId) => {
   });
 };
 
-export const sendPing = (socketId) => {
+const sendPing = (socketId) => {
   const secret = generateAndSetSocketLatencySecret(socketId);
 
   emitToSocket({
@@ -90,7 +89,27 @@ export const sendPing = (socketId) => {
 };
 
 const log = ({ socketId, message }) => {
-  console.log(socketId, message);
+  console.log(`[${socketId}]`, message);
+};
+
+// Used to emit both player state updates and media updates.
+// Adjusts the time by the latency to the recipient
+const emitAdjustedUserDataToRoom = ({ eventName, exceptSocketId, userData }) => {
+  getRoomSocketIds(getUserRoomId(exceptSocketId))
+    .filter((socketId) => socketId !== exceptSocketId)
+    .forEach((socketId) => {
+      emitToSocket({
+        socketId,
+        eventName,
+        data: {
+          ...formatUserData({
+            ...userData,
+            recipientId: socketId,
+          }),
+          id: exceptSocketId,
+        },
+      });
+    });
 };
 
 const join = ({
@@ -106,6 +125,7 @@ const join = ({
   if (!doesSocketHaveRtt(socket.id)) {
     // Ignore join if we don't have rtt yet.
     // Client should never do this so this just exists for bad actors
+    log({ socketId: socket.id, message: 'Socket tried to join without finishing initial ping/pong' });
     return;
   }
 
@@ -134,6 +154,7 @@ const join = ({
       id: roomId,
       password,
       isPartyPausingEnabled: desiredPartyPausingEnabled,
+      hostId: socket.id,
     });
     // TODO: start ping thing
   }
@@ -146,22 +167,22 @@ const join = ({
     playerProduct,
   });
 
+  updateUserPlayerState({
+    socketId: socket.id, state, time, duration,
+  });
+
   updateUserMedia({
     socketId: socket.id,
-    state,
-    time,
-    duration,
     media,
   });
 
   // Broadcast user joined to everyone but this
-  emitToUserRoomExcept({
+  emitAdjustedUserDataToRoom({
     exceptSocketId: socket.id,
     eventName: 'userJoined',
-    data: getRoomUserData(socket.id),
+    userData: getRoomUserData(socket.id),
   });
 
-  console.log('joinResponse', getJoinData({ roomId, socketId: socket.id }));
   emitToSocket({
     socketId: socket.id,
     eventName: 'joinResult',
@@ -173,51 +194,100 @@ const join = ({
 };
 
 const disconnect = ({ socket }) => {
-  console.log('disconnect');
+  log({ socketId: socket.id, message: 'disconnect' });
   if (isUserInARoom(socket.id)) {
     removeUserAndUpdateRoom(socket.id);
   }
+
+  clearSocketLatencyInterval(socket.id);
+  removeSocketLatencyData(socket.id);
 };
 
 const transferHost = ({ socket, data: desiredHostId }) => {
+  if (!isUserInARoom(socket.id)) {
+    return;
+  }
+
   if (isUserHost(socket.id)) {
     const roomId = getUserRoomId(socket.id);
     if (isUserInRoom({ roomId, socketId: desiredHostId })) {
-      removeUserHost(socket.id);
       makeUserHost(desiredHostId);
-      makeUserHostAndAnnounce({
+      announceNewHost({
         roomId,
-        desiredHostId,
-      });
-
-      emitToRoom({
-        roomId,
-        eventName: 'hostSwap',
-        data: {
-          oldHostId: socket.id,
-          newHostId: desiredHostId,
-        },
+        hostId: desiredHostId,
       });
     }
   }
 };
 
+const emitPlayerStateUpdateToRoom = (socketId) => {
+  const {
+    updatedAt, state, time, duration,
+  } = getRoomUserData(socketId);
+
+  emitAdjustedUserDataToRoom({
+    eventName: 'mediaUpdate',
+    exceptSocketId: socketId,
+    userData: {
+      updatedAt,
+      state,
+      time,
+      duration,
+    },
+  });
+};
+
 const playerStateUpdate = ({
   socket, data: { state, time, duration },
 }) => {
-  updatePlayerState({
+  if (!isUserInARoom(socket.id)) {
+    return;
+  }
+
+  updateUserPlayerState({
     socketId: socket.id, state, time, duration,
+  });
+
+  emitPlayerStateUpdateToRoom(socket.id);
+};
+
+const emitMediaUpdateToRoom = (socketId) => {
+  const {
+    updatedAt, state, time, duration, media,
+  } = getRoomUserData(socketId);
+
+  emitAdjustedUserDataToRoom({
+    eventName: 'playerStateUpdate',
+    exceptSocketId: socketId,
+    userData: {
+      updatedAt,
+      state,
+      time,
+      duration,
+      media,
+    },
   });
 };
 
 const mediaUpdate = ({
-  socket, data: { state, time, media },
+  socket, data: {
+    state, time, duration, media,
+  },
 }) => {
-  emitToUserRoomExcept({
-    exceptSocketId: socket.id,
-    eventName: 'asldfjlakf',
-    data: getRoomUserData(socket.id),
+  if (!isUserInARoom(socket.id)) {
+    return;
+  }
+
+  updateUserPlayerState({
+    socketId: socket.id, state, time, duration,
   });
+
+  updateUserMedia({
+    socketId: socket.id,
+    media,
+  });
+
+  emitMediaUpdateToRoom(socket.id);
 };
 
 const slPong = ({ socket, data: secret }) => {
@@ -238,6 +308,21 @@ const slPong = ({ socket, data: secret }) => {
   });
 };
 
+const sendMessage = ({ socket, data: text }) => {
+  if (!isUserInARoom(socket.id)) {
+    return;
+  }
+
+  emitToUserRoomExcept({
+    eventName: 'newMessage',
+    data: {
+      text,
+      senderId: socket.id,
+    },
+    exceptSocketId: socket.id,
+  });
+};
+
 server.on('connection', (socket) => {
   console.log('connection:', socket.conn.remoteAddress);
   initSocketLatencyData(socket.id);
@@ -255,6 +340,7 @@ server.on('connection', (socket) => {
   registerEvent({ eventName: 'playerStateUpdate', handler: playerStateUpdate });
   registerEvent({ eventName: 'mediaUpdate', handler: mediaUpdate });
   registerEvent({ eventName: 'transferHost', handler: transferHost });
+  registerEvent({ eventName: 'sendMessage', handler: sendMessage });
   registerEvent({ eventName: 'disconnect', handler: disconnect });
 });
 
