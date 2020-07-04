@@ -1,8 +1,9 @@
-import { getNumberFromUsername } from './utils';
+import { getNumberFromUsername, guid } from './utils';
 
 const rooms = new Map();
 // Map from socket id to room name
 const socketRoomId = new Map();
+const socketLatencyData = new Map();
 
 export const getUserRoomId = (socketId) => socketRoomId.get(socketId);
 
@@ -137,3 +138,29 @@ export const removeUserHost = (socketId) => {
 };
 
 export const isUserInRoom = ({ roomId, socketId }) => rooms.get(roomId).users.has(socketId);
+
+export const getSocketPingSecret = (socketId) => socketLatencyData.get(socketId).secret;
+
+export const updateSocketLatency = (socketId) => {
+  const latencyData = socketLatencyData.get(socketId);
+
+  // TODO: potentially smooth it? or also measure variance?
+  latencyData.rtt = Date.now() - latencyData.sentAt;
+
+  // Reset secret
+  latencyData.secret = null;
+};
+
+export const generateAndSetSocketLatencySecret = (socketId) => {
+  const secret = guid();
+  socketLatencyData.get(socketId).secret = secret;
+  return secret;
+};
+
+export const setSocketLatencyIntervalId = ({ socketId, intervalId }) => {
+  socketLatencyData.get(socketId).intervalId = intervalId;
+};
+
+export const doesSocketHaveRtt = (socketId) => socketLatencyData.get(socketId).rtt != null;
+
+export const initSocketLatencyData = (socketId) => socketLatencyData.set(socketId, {});
