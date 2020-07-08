@@ -175,6 +175,13 @@ export const removeSocketLatencyData = (socketId) => {
   socketLatencyData.delete(socketId);
 };
 
+export const isPartyPausingEnabledInSocketRoom = (socketId) => getUserRoom(socketId)
+  .isPartyPausingEnabled;
+
+export const setIsPartyPausingEnabledInSocketRoom = ({ socketId, isPartyPausingEnabled }) => {
+  getUserRoom(socketId).isPartyPausingEnabled = isPartyPausingEnabled;
+};
+
 export const clearSocketLatencyInterval = (socketId) => {
   clearInterval(socketLatencyData.get(socketId).intervalId);
 };

@@ -6,6 +6,7 @@ import {
   getSocketPingSecret, updateSocketLatency, setSocketLatencyIntervalId, doesSocketHaveRtt,
   getRoomSocketIds, removeUser, isRoomEmpty, removeRoom, getAnySocketIdInRoom,
   generateAndSetSocketLatencySecret, initSocketLatencyData, formatUserData, getRoomHostId,
+  setIsPartyPausingEnabledInSocketRoom, isPartyPausingEnabledInSocketRoom,
 } from './state';
 
 const server = io({
@@ -34,6 +35,10 @@ const emitToRoom = ({ roomId, eventName, data }) => {
   getRoomSocketIds(roomId).forEach((socketId) => {
     emitToSocket({ socketId, eventName, data });
   });
+};
+
+const emitToSocketRoom = ({ socketId, eventName, data }) => {
+  emitToRoom({ roomId: getUserRoomId(socketId), eventName, data });
 };
 
 const announceNewHost = ({ roomId, hostId }) => {
@@ -205,19 +210,17 @@ const disconnect = ({ socket }) => {
 };
 
 const transferHost = ({ socket, data: desiredHostId }) => {
-  if (!isUserInARoom(socket.id)) {
+  if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
     return;
   }
 
-  if (isUserHost(socket.id)) {
-    const roomId = getUserRoomId(socket.id);
-    if (isUserInRoom({ roomId, socketId: desiredHostId })) {
-      makeUserHost(desiredHostId);
-      announceNewHost({
-        roomId,
-        hostId: desiredHostId,
-      });
-    }
+  const roomId = getUserRoomId(socket.id);
+  if (isUserInRoom({ roomId, socketId: desiredHostId })) {
+    makeUserHost(desiredHostId);
+    announceNewHost({
+      roomId,
+      hostId: desiredHostId,
+    });
   }
 };
 
@@ -324,6 +327,21 @@ const sendMessage = ({ socket, data: text }) => {
   });
 };
 
+const setPartyPausingEnabled = ({ socket, data: isPartyPausingEnabled }) => {
+  if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
+    return;
+  }
+
+  setIsPartyPausingEnabledInSocketRoom({ socketId: socket.id, isPartyPausingEnabled });
+
+  // Emitting to everyone including sender as an ack that it went through
+  emitToSocketRoom({
+    socketId: socket.id,
+    eventName: 'setPartyPausingEnabled',
+    data: isPartyPausingEnabled,
+  });
+};
+
 server.on('connection', (socket) => {
   log({ socketId: socket.id, message: `connection "${socket.conn.remoteAddress}"` });
   initSocketLatencyData(socket.id);
@@ -342,6 +360,7 @@ server.on('connection', (socket) => {
   registerEvent({ eventName: 'mediaUpdate', handler: mediaUpdate });
   registerEvent({ eventName: 'transferHost', handler: transferHost });
   registerEvent({ eventName: 'sendMessage', handler: sendMessage });
+  registerEvent({ eventName: 'setPartyPausingEnabled', handler: setPartyPausingEnabled });
   registerEvent({ eventName: 'disconnect', handler: disconnect });
 });
 
