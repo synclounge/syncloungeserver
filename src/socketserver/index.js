@@ -342,6 +342,21 @@ const setPartyPausingEnabled = ({ socket, data: isPartyPausingEnabled }) => {
   });
 };
 
+const partyPause = ({ socket, data: isPause }) => {
+  if (!isUserInARoom(socket.id)) {
+    return;
+  }
+
+  emitToSocketRoom({
+    socketId: socket.id,
+    eventName: 'partyPause',
+    data: {
+      senderId: socket.id,
+      isPause,
+    },
+  });
+};
+
 server.on('connection', (socket) => {
   log({ socketId: socket.id, message: `connection "${socket.conn.remoteAddress}"` });
   initSocketLatencyData(socket.id);
@@ -361,6 +376,7 @@ server.on('connection', (socket) => {
   registerEvent({ eventName: 'transferHost', handler: transferHost });
   registerEvent({ eventName: 'sendMessage', handler: sendMessage });
   registerEvent({ eventName: 'setPartyPausingEnabled', handler: setPartyPausingEnabled });
+  registerEvent({ eventName: 'partyPause', handler: partyPause });
   registerEvent({ eventName: 'disconnect', handler: disconnect });
 });
 
