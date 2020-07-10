@@ -32,7 +32,7 @@ const getUniqueUsername = ({ usernames, desiredUsername }) => {
 export const getSocketLatency = (socketId) => socketLatencyData.get(socketId).rtt / 2;
 
 export const updateUserPlayerState = ({
-  socketId, state, time, duration,
+  socketId, state, time, duration, playbackRate, syncState,
 }) => {
   const userRoomData = getRoomUserData(socketId);
   userRoomData.state = state;
@@ -41,6 +41,8 @@ export const updateUserPlayerState = ({
     ? time + getSocketLatency(socketId)
     : time;
   userRoomData.duration = duration;
+  userRoomData.playbackRate = playbackRate;
+  userRoomData.syncState = syncState;
   userRoomData.updatedAt = Date.now();
 };
 
@@ -87,14 +89,15 @@ export const doesRoomExist = (roomId) => rooms.has(roomId);
 export const getRoomSocketIds = (roomId) => [...rooms.get(roomId).users.keys()];
 
 export const formatUserData = ({
-  recipientId, updatedAt, state, time, ...rest
+  recipientId, updatedAt, playbackRate, state, time, ...rest
 }) => ({
   ...rest,
+  playbackRate,
   state,
   // Adjust time by age if playing
   // TODO: adjust time by recipient's latency
   time: state === 'playing'
-    ? time + getSocketLatency(recipientId) + Date.now() - updatedAt
+    ? time + (getSocketLatency(recipientId) + Date.now() - updatedAt) * playbackRate
     : time,
 });
 

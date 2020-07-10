@@ -121,7 +121,7 @@ const emitAdjustedUserDataToRoom = ({ eventName, exceptSocketId, userData }) => 
 const join = ({
   socket, data: {
     roomId, password, desiredUsername, desiredPartyPausingEnabled, thumb, playerProduct, state,
-    time, duration, media,
+    time, duration, playbackRate, syncState, media,
   },
 }) => {
   log({ socketId: socket.id, message: `join "${roomId}"` });
@@ -174,7 +174,7 @@ const join = ({
   });
 
   updateUserPlayerState({
-    socketId: socket.id, state, time, duration,
+    socketId: socket.id, state, time, duration, playbackRate, syncState,
   });
 
   updateUserMedia({
@@ -226,7 +226,7 @@ const transferHost = ({ socket, data: desiredHostId }) => {
 
 const emitPlayerStateUpdateToRoom = (socketId) => {
   const {
-    updatedAt, state, time, duration,
+    updatedAt, state, time, duration, playbackRate, syncState,
   } = getRoomUserData(socketId);
 
   emitAdjustedUserDataToRoom({
@@ -237,19 +237,23 @@ const emitPlayerStateUpdateToRoom = (socketId) => {
       state,
       time,
       duration,
+      playbackRate,
+      syncState,
     },
   });
 };
 
 const playerStateUpdate = ({
-  socket, data: { state, time, duration },
+  socket, data: {
+    state, time, duration, playbackRate, syncState,
+  },
 }) => {
   if (!isUserInARoom(socket.id)) {
     return;
   }
 
   updateUserPlayerState({
-    socketId: socket.id, state, time, duration,
+    socketId: socket.id, state, time, duration, playbackRate, syncState,
   });
 
   emitPlayerStateUpdateToRoom(socket.id);
@@ -257,7 +261,7 @@ const playerStateUpdate = ({
 
 const emitMediaUpdateToRoom = (socketId) => {
   const {
-    updatedAt, state, time, duration, media,
+    updatedAt, state, time, duration, playbackRate, media,
   } = getRoomUserData(socketId);
 
   emitAdjustedUserDataToRoom({
@@ -268,6 +272,7 @@ const emitMediaUpdateToRoom = (socketId) => {
       state,
       time,
       duration,
+      playbackRate,
       media,
     },
   });
@@ -275,7 +280,7 @@ const emitMediaUpdateToRoom = (socketId) => {
 
 const mediaUpdate = ({
   socket, data: {
-    state, time, duration, media,
+    state, time, duration, playbackRate, media,
   },
 }) => {
   if (!isUserInARoom(socket.id)) {
@@ -283,7 +288,7 @@ const mediaUpdate = ({
   }
 
   updateUserPlayerState({
-    socketId: socket.id, state, time, duration,
+    socketId: socket.id, state, time, duration, playbackRate,
   });
 
   updateUserMedia({
