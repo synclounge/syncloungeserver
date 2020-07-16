@@ -6,7 +6,7 @@ import {
   getSocketPingSecret, updateSocketLatency, setSocketLatencyIntervalId, doesSocketHaveRtt,
   getRoomSocketIds, removeUser, isRoomEmpty, removeRoom, getAnySocketIdInRoom,
   generateAndSetSocketLatencySecret, initSocketLatencyData, formatUserData, getRoomHostId,
-  setIsPartyPausingEnabledInSocketRoom, isPartyPausingEnabledInSocketRoom,
+  setIsPartyPausingEnabledInSocketRoom,
 } from './state';
 
 const server = io({

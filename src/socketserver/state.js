@@ -188,3 +188,15 @@ export const setIsPartyPausingEnabledInSocketRoom = ({ socketId, isPartyPausingE
 export const clearSocketLatencyInterval = (socketId) => {
   clearInterval(socketLatencyData.get(socketId).intervalId);
 };
+
+export const getHealth = () => {
+  if (socketRoomId.size < 25) {
+    return 'low';
+  }
+
+  if (socketRoomId.size < 50) {
+    return 'medium';
+  }
+
+  return 'high';
+};

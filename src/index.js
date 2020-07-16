@@ -8,6 +8,8 @@ import urljoin from 'url-join';
 import config from './config';
 import socketServer from './socketserver';
 
+import { getHealth } from './socketserver/state';
+
 const app = express();
 const server = http.Server(app);
 const router = express.Router();
@@ -28,24 +30,9 @@ router.get('/', (req, res) => {
   res.send('You\'ve connected to the SLServer, you\'re probably looking for the webapp.');
 });
 
-// router.get('/health', (req, res) => {
-//   res.setHeader('Content-Type', 'application/json');
-//   const connectedUsers = Object.keys(namespace.sockets.connected).length;
-//   let load = 'low';
-//   if (connectedUsers > 25) {
-//     load = 'medium';
-//   }
-//   if (connectedUsers > 50) {
-//     load = 'high';
-//   }
-//   return res.send(JSON.stringify({ load })).end();
-// });
-
-// router.get('/users', (req, res) => {
-//   res.setHeader('Content-Type', 'application/json');
-//   const users = Object.keys(namespace.sockets.connected).length;
-//   return res.send(JSON.stringify({ users })).end();
-// });
+router.get('/health', (req, res) => {
+  res.json(getHealth());
+});
 
 console.log('SyncLounge Server successfully started on port', config.get('port'));
 console.log('Running with base URL:', config.get('base_url'));
