@@ -14,8 +14,6 @@ const app = express();
 const server = http.Server(app);
 const router = express.Router();
 
-server.listen(config.get('port'));
-
 app.use(cors());
 
 app.use(config.get('base_url'), router);
@@ -26,13 +24,20 @@ socketServer.attach(server, {
 });
 
 // Setup our router
-router.get('/', (req, res) => {
-  res.send('You\'ve connected to the SLServer, you\'re probably looking for the webapp.');
-});
+if (config.get('static_path')) {
+  console.log('Serving static files at', config.get('static_path'));
+  router.use(express.static(config.get('static_path')));
+} else {
+  router.get('/', (req, res) => {
+    res.send('You\'ve connected to the SLServer, you\'re probably looking for the webapp.');
+  });
+}
 
 router.get('/health', (req, res) => {
   res.json(getHealth());
 });
 
-console.log('SyncLounge Server successfully started on port', config.get('port'));
-console.log('Running with base URL:', config.get('base_url'));
+server.listen(config.get('port'), () => {
+  console.log('SyncLounge Server successfully started on port', config.get('port'));
+  console.log('Running with base URL:', config.get('base_url'));
+});
