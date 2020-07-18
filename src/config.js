@@ -1,7 +1,15 @@
 import nconf from 'nconf';
 
-nconf.argv()
-  .env({ lowerCase: true })
+nconf
+  .argv({
+    separator: '__',
+    parseValues: true,
+  })
+  .env({
+    separator: '__',
+    lowerCase: true,
+    parseValues: true,
+  })
   .file({ file: 'settings.json' });
 
 nconf.defaults({
