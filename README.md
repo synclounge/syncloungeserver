@@ -16,7 +16,7 @@ If you want to also serve the webapp:
 ```sh
 syncloungesocket --static_path /path/to/syncloungewebapp/dist
 # OR
-STATIC_PATH='/path/to/syncloungewebapp/dist' syncloungesocket --static_path /path/to/syncloungewebapp/dist
+STATIC_PATH='/path/to/syncloungewebapp/dist' syncloungesocket
 ```
 
 ### Options
