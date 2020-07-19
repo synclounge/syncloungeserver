@@ -189,7 +189,7 @@ export const clearSocketLatencyInterval = (socketId) => {
   clearInterval(socketLatencyData.get(socketId).intervalId);
 };
 
-export const getHealth = () => {
+const getLoad = () => {
   if (socketRoomId.size < 25) {
     return 'low';
   }
@@ -200,3 +200,7 @@ export const getHealth = () => {
 
   return 'high';
 };
+
+export const getHealth = () => ({
+  load: getLoad(),
+});

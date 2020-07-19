@@ -95,7 +95,11 @@ const sendPing = (socketId) => {
 };
 
 const log = ({ socketId, message }) => {
-  console.log(`[${socketId}]`, message);
+  const identifier = isUserInARoom(socketId)
+    ? `[${socketId}] ${getRoomUserData(socketId).username}`
+    : `[${socketId}]`;
+
+  console.log(new Date().toISOString(), identifier, message);
 };
 
 // Used to emit both player state updates and media updates.
@@ -155,14 +159,14 @@ const join = ({
       return;
     }
   } else {
-    console.log('Creating room', roomId);
+    log({ socketId: socket.id, message: `Creating room: ${roomId}` });
+
     createRoom({
       id: roomId,
       password,
       isPartyPausingEnabled: desiredPartyPausingEnabled,
       hostId: socket.id,
     });
-    // TODO: start ping thing
   }
 
   addUserToRoom({
@@ -201,6 +205,7 @@ const join = ({
 
 const disconnect = ({ socket }) => {
   log({ socketId: socket.id, message: 'disconnect' });
+
   if (isUserInARoom(socket.id)) {
     removeUserAndUpdateRoom(socket.id);
   }
@@ -216,6 +221,10 @@ const transferHost = ({ socket, data: desiredHostId }) => {
 
   const roomId = getUserRoomId(socket.id);
   if (isUserInRoom({ roomId, socketId: desiredHostId })) {
+    log({
+      socketId: socket.id,
+      message: `Transferring host to: [${desiredHostId}] ${getRoomUserData(desiredHostId).username}`,
+    });
     makeUserHost(desiredHostId);
     announceNewHost({
       roomId,
@@ -301,8 +310,11 @@ const mediaUpdate = ({
 
 const slPong = ({ socket, data: secret }) => {
   const expectedSecret = getSocketPingSecret(socket.id);
-  if (getSocketPingSecret(socket.id) === null || secret !== expectedSecret) {
-    console.warn('Incorrect secret');
+  if (expectedSecret === null || secret !== expectedSecret) {
+    log({
+      socketId: socket.id,
+      message: `Incorrect secret. Expected "${expectedSecret}", got "${secret}"`,
+    });
     return;
   }
 
