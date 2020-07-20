@@ -99,7 +99,7 @@ const log = ({ socketId, message }) => {
     ? `[${socketId}] ${getRoomUserData(socketId).username}`
     : `[${socketId}]`;
 
-  console.log(new Date().toISOString(), identifier, message);
+  console.log(new Date().toISOString(), identifier, ':', message);
 };
 
 // Used to emit both player state updates and media updates.
@@ -128,9 +128,7 @@ const join = ({
     time, duration, playbackRate, syncState, media,
   },
 }) => {
-  log({ socketId: socket.id, message: `join "${roomId}"` });
-  // // TODO: log
-  // // TODO: validate timeline thign
+  // TODO: validate timeline thign
 
   if (!doesSocketHaveRtt(socket.id)) {
     // Ignore join if we don't have rtt yet.
@@ -176,6 +174,8 @@ const join = ({
     thumb,
     playerProduct,
   });
+
+  log({ socketId: socket.id, message: `join "${roomId}"` });
 
   updateUserPlayerState({
     socketId: socket.id, state, time, duration, playbackRate, syncState,
@@ -348,6 +348,11 @@ const setPartyPausingEnabled = ({ socket, data: isPartyPausingEnabled }) => {
   if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
     return;
   }
+
+  log({
+    socketId: socket.id,
+    message: `set party pausing to: ${isPartyPausingEnabled}`,
+  });
 
   setIsPartyPausingEnabledInSocketRoom({ socketId: socket.id, isPartyPausingEnabled });
 
