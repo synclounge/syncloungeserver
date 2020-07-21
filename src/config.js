@@ -9,8 +9,7 @@ nconf
     separator: '__',
     lowerCase: true,
     parseValues: true,
-  })
-  .file({ file: 'settings.json' });
+  });
 
 nconf.defaults({
   port: 8089,
