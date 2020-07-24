@@ -16,6 +16,14 @@ const server = io({
   transports: ['websockets', 'polling'],
 });
 
+const log = ({ socketId, message }) => {
+  const identifier = isUserInARoom(socketId)
+    ? `[${socketId}] ${getRoomUserData(socketId).username}`
+    : `[${socketId}]`;
+
+  console.log(new Date().toISOString(), identifier, ':', message);
+};
+
 const emitToSocket = ({ socketId, eventName, data }) => {
   // console.log(data);
   server.to(socketId).emit(eventName, data);
@@ -59,10 +67,15 @@ const removeUserAndUpdateRoom = (socketId) => {
     return;
   }
 
-  if (getRoomHostId(roomId)) {
+  if (getRoomHostId(roomId) === socketId) {
     // Make someone else host
     const desiredHostId = getAnySocketIdInRoom(roomId);
     makeUserHost(desiredHostId);
+
+    log({
+      socketId,
+      message: `Transferring host to: [${desiredHostId}] ${getRoomUserData(desiredHostId).username}`,
+    });
     emitToRoom({
       roomId,
       eventName: 'userLeft',
@@ -92,14 +105,6 @@ const sendPing = (socketId) => {
     eventName: 'slPing',
     data: secret,
   });
-};
-
-const log = ({ socketId, message }) => {
-  const identifier = isUserInARoom(socketId)
-    ? `[${socketId}] ${getRoomUserData(socketId).username}`
-    : `[${socketId}]`;
-
-  console.log(new Date().toISOString(), identifier, ':', message);
 };
 
 // Used to emit both player state updates and media updates.
