@@ -12,7 +12,7 @@ nconf
   });
 
 nconf.defaults({
-  port: 8089,
+  port: 8088,
   base_url: '/',
 });
 
