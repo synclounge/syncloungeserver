@@ -6,7 +6,7 @@ import {
   getSocketPingSecret, updateSocketLatency, setSocketLatencyIntervalId, doesSocketHaveRtt,
   getRoomSocketIds, removeUser, isRoomEmpty, removeRoom, getAnySocketIdInRoom,
   generateAndSetSocketLatencySecret, initSocketLatencyData, formatUserData, getRoomHostId,
-  setIsPartyPausingEnabledInSocketRoom,
+  setIsPartyPausingEnabledInSocketRoom, updateUserSyncFlexibility,
 } from './state';
 
 const server = io({
@@ -130,7 +130,7 @@ const emitAdjustedUserDataToRoom = ({ eventName, exceptSocketId, userData }) => 
 const join = ({
   socket, data: {
     roomId, password, desiredUsername, desiredPartyPausingEnabled, thumb, playerProduct, state,
-    time, duration, playbackRate, syncState, media,
+    time, duration, playbackRate, media, syncFlexibility,
   },
 }) => {
   // TODO: validate timeline thign
@@ -183,7 +183,12 @@ const join = ({
   log({ socketId: socket.id, message: `join "${roomId}"` });
 
   updateUserPlayerState({
-    socketId: socket.id, state, time, duration, playbackRate, syncState,
+    socketId: socket.id, state, time, duration, playbackRate,
+  });
+
+  updateUserSyncFlexibility({
+    socketId: socket.id,
+    syncFlexibility,
   });
 
   updateUserMedia({
@@ -240,7 +245,7 @@ const transferHost = ({ socket, data: desiredHostId }) => {
 
 const emitPlayerStateUpdateToRoom = (socketId) => {
   const {
-    updatedAt, state, time, duration, playbackRate, syncState,
+    updatedAt, state, time, duration, playbackRate,
   } = getRoomUserData(socketId);
 
   emitAdjustedUserDataToRoom({
@@ -252,14 +257,13 @@ const emitPlayerStateUpdateToRoom = (socketId) => {
       time,
       duration,
       playbackRate,
-      syncState,
     },
   });
 };
 
 const playerStateUpdate = ({
   socket, data: {
-    state, time, duration, playbackRate, syncState,
+    state, time, duration, playbackRate,
   },
 }) => {
   if (!isUserInARoom(socket.id)) {
@@ -267,7 +271,7 @@ const playerStateUpdate = ({
   }
 
   updateUserPlayerState({
-    socketId: socket.id, state, time, duration, playbackRate, syncState,
+    socketId: socket.id, state, time, duration, playbackRate,
   });
 
   emitPlayerStateUpdateToRoom(socket.id);
@@ -384,6 +388,22 @@ const partyPause = ({ socket, data: isPause }) => {
   });
 };
 
+const syncFlexibilityUpdate = ({ socket, data: syncFlexibility }) => {
+  updateUserSyncFlexibility({
+    socketId: socket.id,
+    syncFlexibility,
+  });
+
+  emitToUserRoomExcept({
+    eventName: 'syncFlexibilityUpdate',
+    data: {
+      syncFlexibility,
+      id: socket.id,
+    },
+    exceptSocketId: socket.id,
+  });
+};
+
 server.on('connection', (socket) => {
   log({ socketId: socket.id, message: `connection "${socket.conn.remoteAddress}"` });
   initSocketLatencyData(socket.id);
@@ -400,6 +420,7 @@ server.on('connection', (socket) => {
   registerEvent({ eventName: 'slPong', handler: slPong });
   registerEvent({ eventName: 'playerStateUpdate', handler: playerStateUpdate });
   registerEvent({ eventName: 'mediaUpdate', handler: mediaUpdate });
+  registerEvent({ eventName: 'syncFlexibilityUpdate', handler: syncFlexibilityUpdate });
   registerEvent({ eventName: 'transferHost', handler: transferHost });
   registerEvent({ eventName: 'sendMessage', handler: sendMessage });
   registerEvent({ eventName: 'setPartyPausingEnabled', handler: setPartyPausingEnabled });

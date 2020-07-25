@@ -32,7 +32,7 @@ const getUniqueUsername = ({ usernames, desiredUsername }) => {
 export const getSocketLatency = (socketId) => socketLatencyData.get(socketId).rtt / 2;
 
 export const updateUserPlayerState = ({
-  socketId, state, time, duration, playbackRate, syncState,
+  socketId, state, time, duration, playbackRate,
 }) => {
   const userRoomData = getRoomUserData(socketId);
   userRoomData.state = state;
@@ -42,7 +42,6 @@ export const updateUserPlayerState = ({
     : time;
   userRoomData.duration = duration;
   userRoomData.playbackRate = playbackRate;
-  userRoomData.syncState = syncState;
   userRoomData.updatedAt = Date.now();
 };
 
@@ -51,6 +50,13 @@ export const updateUserMedia = ({
 }) => {
   const userRoomData = getRoomUserData(socketId);
   userRoomData.media = media;
+};
+
+export const updateUserSyncFlexibility = ({
+  socketId, syncFlexibility,
+}) => {
+  const userRoomData = getRoomUserData(socketId);
+  userRoomData.syncFlexibility = syncFlexibility;
 };
 
 export const addUserToRoom = ({
