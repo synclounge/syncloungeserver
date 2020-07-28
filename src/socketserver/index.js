@@ -1,4 +1,6 @@
 import io from 'socket.io';
+
+import config from './config';
 import {
   doesRoomExist, isUserInARoom, getRoomUserData, isUserHost, removeSocketLatencyData,
   getJoinData, isRoomPasswordCorrect, createRoom, addUserToRoom, clearSocketLatencyInterval,
@@ -333,8 +335,7 @@ const slPong = ({ socket, data: secret }) => {
     socketId: socket.id,
     intervalId: setTimeout(() => {
       sendPing(socket.id);
-      // TODO: put interval in config
-    }, 10000),
+    }, config.get('ping_interval')),
   });
 };
 
