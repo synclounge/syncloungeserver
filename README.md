@@ -1,3 +1,4 @@
+![SyncLounge](https://app.synclounge.tv/logo-long-dark.png)
 # SyncLounge Socket Server
 This is the socket server that goes along with the [SyncLounge webapp](https://github.com/samcm/synclounge)
 You can either run the socket on its own or have it serve the webapp files too.
@@ -50,6 +51,14 @@ Default is '/'
 syncloungesocket --base_url '/somebase'
 # OR
 BASE_URL='/somebase' syncloungesocket
+```
+
+#### Ping Interval
+Default is 10000 ms
+```sh
+syncloungesocket --ping_interval 10000
+# OR
+PING_INTERVAL=10000 syncloungesocket
 ```
 
 ## Manual Building
