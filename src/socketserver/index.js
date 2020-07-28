@@ -1,6 +1,6 @@
 import io from 'socket.io';
 
-import config from './config';
+import config from '../config';
 import {
   doesRoomExist, isUserInARoom, getRoomUserData, isUserHost, removeSocketLatencyData,
   getJoinData, isRoomPasswordCorrect, createRoom, addUserToRoom, clearSocketLatencyInterval,
