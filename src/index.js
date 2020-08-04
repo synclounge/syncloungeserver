@@ -10,6 +10,8 @@ import socketServer from './socketserver';
 
 import { getHealth } from './socketserver/state';
 
+http.globalAgent.keepAlive = true;
+
 const app = express();
 const server = http.Server(app);
 const router = express.Router();
