@@ -24,7 +24,7 @@ STATIC_PATH='/path/to/syncloungewebapp/dist' syncloungesocket
 All options can be provided as either environmental variables or arguments.
 
 #### Port
-Default is 8089
+Default is 8088
 ```sh
 syncloungesocket --port 1234
 # OR
