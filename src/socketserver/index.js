@@ -141,6 +141,7 @@ const join = ({
     // Ignore join if we don't have rtt yet.
     // Client should never do this so this just exists for bad actors
     log({ socketId: socket.id, message: 'Socket tried to join without finishing initial ping/pong' });
+    socket.disconnect(true);
     return;
   }
 
@@ -228,21 +229,25 @@ const disconnect = ({ socket }) => {
 
 const transferHost = ({ socket, data: desiredHostId }) => {
   if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
+    socket.disconnect(true);
     return;
   }
 
   const roomId = getUserRoomId(socket.id);
-  if (isUserInRoom({ roomId, socketId: desiredHostId })) {
-    log({
-      socketId: socket.id,
-      message: `Transferring host to: [${desiredHostId}] ${getRoomUserData(desiredHostId).username}`,
-    });
-    makeUserHost(desiredHostId);
-    announceNewHost({
-      roomId,
-      hostId: desiredHostId,
-    });
+  if (!isUserInRoom({ roomId, socketId: desiredHostId })) {
+    socket.disconnect(true);
+    return;
   }
+
+  log({
+    socketId: socket.id,
+    message: `Transferring host to: [${desiredHostId}] ${getRoomUserData(desiredHostId).username}`,
+  });
+  makeUserHost(desiredHostId);
+  announceNewHost({
+    roomId,
+    hostId: desiredHostId,
+  });
 };
 
 const emitPlayerStateUpdateToRoom = (socketId) => {
@@ -269,6 +274,7 @@ const playerStateUpdate = ({
   },
 }) => {
   if (!isUserInARoom(socket.id)) {
+    socket.disconnect(true);
     return;
   }
 
@@ -304,6 +310,7 @@ const mediaUpdate = ({
   },
 }) => {
   if (!isUserInARoom(socket.id)) {
+    socket.disconnect(true);
     return;
   }
 
@@ -326,6 +333,8 @@ const slPong = ({ socket, data: secret }) => {
       socketId: socket.id,
       message: `Incorrect secret. Expected "${expectedSecret}", got "${secret}"`,
     });
+
+    socket.disconnect(true);
     return;
   }
 
@@ -341,6 +350,7 @@ const slPong = ({ socket, data: secret }) => {
 
 const sendMessage = ({ socket, data: text }) => {
   if (!isUserInARoom(socket.id)) {
+    socket.disconnect(true);
     return;
   }
 
@@ -356,6 +366,7 @@ const sendMessage = ({ socket, data: text }) => {
 
 const setPartyPausingEnabled = ({ socket, data: isPartyPausingEnabled }) => {
   if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
+    socket.disconnect(true);
     return;
   }
 
@@ -376,6 +387,7 @@ const setPartyPausingEnabled = ({ socket, data: isPartyPausingEnabled }) => {
 
 const partyPause = ({ socket, data: isPause }) => {
   if (!isUserInARoom(socket.id)) {
+    socket.disconnect(true);
     return;
   }
 
@@ -390,6 +402,11 @@ const partyPause = ({ socket, data: isPause }) => {
 };
 
 const syncFlexibilityUpdate = ({ socket, data: syncFlexibility }) => {
+  if (!isUserInARoom(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+
   updateUserSyncFlexibility({
     socketId: socket.id,
     syncFlexibility,
