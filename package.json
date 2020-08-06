@@ -28,7 +28,7 @@
   "homepage": "https://github.com/ttshivers/syncloungesocket#readme",
   "devDependencies": {
     "@babel/cli": "^7.10.3",
-    "@babel/core": "^7.11.0",
+    "@babel/core": "^7.11.1",
     "@babel/node": "^7.10.3",
     "babel-eslint": "^10.1.0",
     "babel-preset-airbnb": "^5.0.0",
