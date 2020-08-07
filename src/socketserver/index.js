@@ -285,7 +285,7 @@ const playerStateUpdate = ({
   emitPlayerStateUpdateToRoom(socket.id);
 };
 
-const emitMediaUpdateToRoom = (socketId) => {
+const emitMediaUpdateToRoom = ({ socketId, makeHost }) => {
   const {
     updatedAt, state, time, duration, playbackRate, media,
   } = getRoomUserData(socketId);
@@ -300,13 +300,14 @@ const emitMediaUpdateToRoom = (socketId) => {
       duration,
       playbackRate,
       media,
+      makeHost,
     },
   });
 };
 
 const mediaUpdate = ({
   socket, data: {
-    state, time, duration, playbackRate, media,
+    state, time, duration, playbackRate, media, userInitiated,
   },
 }) => {
   if (!isUserInARoom(socket.id)) {
@@ -323,7 +324,18 @@ const mediaUpdate = ({
     media,
   });
 
-  emitMediaUpdateToRoom(socket.id);
+  const makeHost = userInitiated && !isUserHost(socket.id);
+  if (makeHost) {
+    // Emit to user that they are host now
+    makeUserHost(socket.id);
+    emitToSocket({
+      socketId: socket.id,
+      eventName: 'newHost',
+      data: socket.id,
+    });
+  }
+
+  emitMediaUpdateToRoom({ socketId: socket.id, makeHost });
 };
 
 const slPong = ({ socket, data: secret }) => {
