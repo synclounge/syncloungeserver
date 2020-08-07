@@ -78,11 +78,12 @@ export const isRoomPasswordCorrect = ({ roomId, password }) => password
   === rooms.get(roomId).password;
 
 export const createRoom = ({
-  id, password, isPartyPausingEnabled, hostId,
+  id, password, isPartyPausingEnabled, isAutoHostEnabled, hostId,
 }) => {
   rooms.set(id, {
     password,
     isPartyPausingEnabled,
+    isAutoHostEnabled,
     hostId,
     users: new Map(),
   });
@@ -117,9 +118,11 @@ export const getRoomHostId = (roomId) => rooms.get(roomId).hostId;
 
 export const getJoinData = ({ roomId, socketId }) => {
   const { username } = getRoomUserData(socketId);
+  const { isPartyPausingEnabled, isAutoHostEnabled } = rooms.get(roomId);
 
   return {
-    isPartyPausingEnabled: rooms.get(roomId).isPartyPausingEnabled,
+    isPartyPausingEnabled,
+    isAutoHostEnabled,
     hostId: getRoomHostId(roomId),
     user: {
       id: socketId,
@@ -184,12 +187,19 @@ export const removeSocketLatencyData = (socketId) => {
   socketLatencyData.delete(socketId);
 };
 
-export const isPartyPausingEnabledInSocketRoom = (socketId) => getUserRoom(socketId)
-  .isPartyPausingEnabled;
-
 export const setIsPartyPausingEnabledInSocketRoom = ({ socketId, isPartyPausingEnabled }) => {
   getUserRoom(socketId).isPartyPausingEnabled = isPartyPausingEnabled;
 };
+
+export const setIsAutoHostEnabledInSocketRoom = ({ socketId, isAutoHostEnabled }) => {
+  getUserRoom(socketId).isAutoHostEnabled = isAutoHostEnabled;
+};
+
+export const isPartyPausingEnabledInSocketRoom = (socketId) => getUserRoom(socketId)
+  .isPartyPausingEnabled;
+
+export const isAutoHostEnabledInSocketRoom = (socketId) => getUserRoom(socketId)
+  .isAutoHostEnabled;
 
 export const clearSocketLatencyInterval = (socketId) => {
   clearInterval(socketLatencyData.get(socketId).intervalId);
