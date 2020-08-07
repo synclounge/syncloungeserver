@@ -333,6 +333,11 @@ const mediaUpdate = ({
       eventName: 'newHost',
       data: socket.id,
     });
+
+    log({
+      socketId: socket.id,
+      message: 'Making host because user initiated media change',
+    });
   }
 
   emitMediaUpdateToRoom({ socketId: socket.id, makeHost });
