@@ -8,7 +8,8 @@ import {
   getSocketPingSecret, updateSocketLatency, setSocketLatencyIntervalId, doesSocketHaveRtt,
   getRoomSocketIds, removeUser, isRoomEmpty, removeRoom, getAnySocketIdInRoom,
   generateAndSetSocketLatencySecret, initSocketLatencyData, formatUserData, getRoomHostId,
-  setIsPartyPausingEnabledInSocketRoom, updateUserSyncFlexibility,
+  setIsPartyPausingEnabledInSocketRoom, updateUserSyncFlexibility, setIsAutoHostEnabledInSocketRoom,
+  isPartyPausingEnabledInSocketRoom, isAutoHostEnabledInSocketRoom,
 } from './state';
 
 const server = io({
@@ -131,8 +132,8 @@ const emitAdjustedUserDataToRoom = ({ eventName, exceptSocketId, userData }) => 
 
 const join = ({
   socket, data: {
-    roomId, password, desiredUsername, desiredPartyPausingEnabled, thumb, playerProduct, state,
-    time, duration, playbackRate, media, syncFlexibility,
+    roomId, password, desiredUsername, desiredPartyPausingEnabled, desiredAutoHostEnabled, thumb,
+    playerProduct, state, time, duration, playbackRate, media, syncFlexibility,
   },
 }) => {
   // TODO: validate timeline thign
@@ -171,6 +172,7 @@ const join = ({
       id: roomId,
       password,
       isPartyPausingEnabled: desiredPartyPausingEnabled,
+      isAutoHostEnabled: desiredAutoHostEnabled,
       hostId: socket.id,
     });
   }
@@ -324,7 +326,9 @@ const mediaUpdate = ({
     media,
   });
 
-  const makeHost = userInitiated && !isUserHost(socket.id);
+  const makeHost = userInitiated && !isUserHost(socket.id)
+    && isAutoHostEnabledInSocketRoom(socket.id);
+
   if (makeHost) {
     // Emit to user that they are host now
     makeUserHost(socket.id);
@@ -402,8 +406,29 @@ const setPartyPausingEnabled = ({ socket, data: isPartyPausingEnabled }) => {
   });
 };
 
+const setAutoHostEnabled = ({ socket, data: isAutoHostEnabled }) => {
+  if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+
+  log({
+    socketId: socket.id,
+    message: `set auto host to: ${isAutoHostEnabled}`,
+  });
+
+  setIsAutoHostEnabledInSocketRoom({ socketId: socket.id, isAutoHostEnabled });
+
+  // Emitting to everyone including sender as an ack that it went through
+  emitToSocketRoom({
+    socketId: socket.id,
+    eventName: 'setAutoHostEnabled',
+    data: isAutoHostEnabled,
+  });
+};
+
 const partyPause = ({ socket, data: isPause }) => {
-  if (!isUserInARoom(socket.id)) {
+  if (!isUserInARoom(socket.id) || !isPartyPausingEnabledInSocketRoom(socket.id)) {
     socket.disconnect(true);
     return;
   }
@@ -459,6 +484,7 @@ server.on('connection', (socket) => {
   registerEvent({ eventName: 'transferHost', handler: transferHost });
   registerEvent({ eventName: 'sendMessage', handler: sendMessage });
   registerEvent({ eventName: 'setPartyPausingEnabled', handler: setPartyPausingEnabled });
+  registerEvent({ eventName: 'setAutoHostEnabled', handler: setAutoHostEnabled });
   registerEvent({ eventName: 'partyPause', handler: partyPause });
   registerEvent({ eventName: 'disconnect', handler: disconnect });
 });
