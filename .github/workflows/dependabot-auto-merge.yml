@@ -10,7 +10,9 @@ jobs:
     steps:
       - uses: ahmadnassri/action-dependabot-auto-merge@v1
         with:
-          target: patch
+          target: patch 
+          github-token: ${{ secrets.PAT }}
       - uses: ahmadnassri/action-dependabot-auto-merge@v1
         with:
           target: minor
+          github-token: ${{ secrets.PAT }}
