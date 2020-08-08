@@ -465,7 +465,8 @@ const syncFlexibilityUpdate = ({ socket, data: syncFlexibility }) => {
 };
 
 server.on('connection', (socket) => {
-  log({ socketId: socket.id, message: `connection "${socket.conn.remoteAddress}"` });
+  const address = socket.handshake.headers['x-forwarded-for'] || socket.conn.remoteAddress;
+  log({ socketId: socket.id, message: `connection "${address}"` });
   initSocketLatencyData(socket.id);
   sendPing(socket.id);
 
