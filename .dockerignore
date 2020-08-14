@@ -1,0 +1,26 @@
+.DS_Store
+node_modules/
+dist/
+npm-debug.log
+test/unit/coverage
+test/e2e/reports
+selenium-debug.log
+.idea/
+.tmp
+.vscode
+
+# local env files
+.env.local
+.env.*.local
+
+# Optional npm cache directory
+.npm
+
+.git
+.gitignore
+.github
+.travis.yml
+Dockerfile
+.dockerignore
+**/README.md
+**/LICENSE
