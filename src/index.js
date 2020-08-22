@@ -14,7 +14,7 @@ import { getHealth } from './socketserver/state';
 const handle = (signal) => {
   console.log(`Received ${signal}. Exiting`);
   process.exit(0);
-}
+};
 
 process.on('SIGINT', handle);
 process.on('SIGTERM', handle);
