@@ -10,6 +10,15 @@ import socketServer from './socketserver';
 
 import { getHealth } from './socketserver/state';
 
+// Using a single function to handle multiple signals
+const handle = (signal) => {
+  console.log(`Received ${signal}. Exiting`);
+  process.exit(0);
+}
+
+process.on('SIGINT', handle);
+process.on('SIGTERM', handle);
+
 http.globalAgent.keepAlive = true;
 
 const app = express();
