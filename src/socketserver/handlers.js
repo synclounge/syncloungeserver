@@ -339,7 +339,7 @@ const attachEventHandlers = ({ server, pingInterval }) => {
   server.on('connection', (socket) => {
     const forwardedHeader = socket.handshake.headers['x-forwarded-for'];
     const addressInfo = forwardedHeader
-      ? `${forwardedHeader} (${socket.conn.remoteAddres})`
+      ? `${forwardedHeader} (${socket.conn.remoteAddress})`
       : socket.conn.remoteAddres;
 
     log({ socketId: socket.id, message: `connection: ${addressInfo}` });
