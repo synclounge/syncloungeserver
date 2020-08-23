@@ -9,10 +9,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: action
-
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2.1.1
@@ -25,6 +21,7 @@ jobs:
 
       - run: npm ci
       - run: npm run lint
+      - run: npm run build
 
   release:
     needs: test
