@@ -13,8 +13,8 @@ const get = () => {
       separator: '__',
       lowerCase: true,
       parseValues: true,
-    });
-  nconf.defaults(defaults);
+    })
+    .defaults(defaults);
 
   return nconf.get();
 };
