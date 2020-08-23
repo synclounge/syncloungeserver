@@ -1,4 +1,5 @@
 import nconf from 'nconf';
+import defaults from './defaults';
 
 nconf
   .argv({
@@ -11,10 +12,6 @@ nconf
     parseValues: true,
   });
 
-nconf.defaults({
-  port: 8088,
-  base_url: '/',
-  ping_interval: 10000,
-});
+nconf.defaults(defaults);
 
 export default nconf;
