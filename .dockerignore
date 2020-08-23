@@ -26,3 +26,5 @@ Dockerfile
 **/LICENSE
 .releaserc
 .editorconfig
+.commitlintrc.js
+.huskyrc
