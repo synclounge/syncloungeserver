@@ -36,6 +36,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - run: npm ci
       - id: release
         name: semantic-release
         uses: ahmadnassri/action-semantic-release@v1
