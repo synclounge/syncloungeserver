@@ -12,7 +12,7 @@ const handle = (signal) => {
 process.on('SIGINT', handle);
 process.on('SIGTERM', handle);
 
-const parsedConfig = config.get();
+const parsedConfig = config();
 
 socketServer({
   baseUrl: parsedConfig.base_url,
