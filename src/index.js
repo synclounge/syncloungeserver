@@ -14,9 +14,4 @@ process.on('SIGTERM', handle);
 
 const parsedConfig = config();
 
-socketServer({
-  baseUrl: parsedConfig.base_url,
-  staticPath: parsedConfig.static_path,
-  port: parsedConfig.port,
-  pingInterval: parsedConfig.ping_interval,
-});
+socketServer(parsedConfig);
