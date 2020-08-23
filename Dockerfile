@@ -1,10 +1,12 @@
 # build environment
 FROM node:current-alpine as build-stage
+RUN mkdir /app && chown -R node:node /app
 WORKDIR /app
 RUN apk add --no-cache python make g++
-COPY package*.json ./
+USER node
+COPY --chown=node:node package*.json ./
 RUN npm ci
-COPY . .
+COPY --chown=node:node . .
 
 RUN npm run build
 RUN npm prune --production
@@ -19,9 +21,10 @@ LABEL org.opencontainers.image.vendor="SyncLounge"
 LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.documentation="https://docs.synclounge.tv/"
 
+RUN mkdir /app && chown -R node:node /app
 WORKDIR /app
-COPY --from=build-stage /app/node_modules node_modules
-COPY --from=build-stage /app/dist .
+COPY --chown=node:node --from=build-stage /app/node_modules node_modules
+COPY --chown=node:node --from=build-stage /app/dist .
 
 
 ARG VERSION
