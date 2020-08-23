@@ -9,7 +9,7 @@
     "start": "node dist/index.js",
     "lint": "eslint .",
     "dev": "nodemon --exec babel-node src",
-    "postversion": "git push && git push --tags"
+    "prepack": "npm run build"
   },
   "repository": {
     "type": "git",
