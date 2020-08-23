@@ -23,8 +23,7 @@ const socketServer = ({
 
   app.use(baseUrl, router);
 
-  const socketio = io(server, {
-    path: urljoin(baseUrl, '/socket.io'),
+  const socketio = io({
     serveClient: false,
     cookie: false,
     // Use websockets first
@@ -32,6 +31,10 @@ const socketServer = ({
   });
 
   attachEventHandlers({ server: socketio, pingInterval });
+
+  socketio.attach(server, {
+    path: urljoin(baseUrl, '/socket.io'),
+  });
 
   // Setup our router
   if (staticPath) {
