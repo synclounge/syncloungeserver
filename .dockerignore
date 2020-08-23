@@ -24,3 +24,5 @@ Dockerfile
 .dockerignore
 **/README.md
 **/LICENSE
+.releaserc
+.editorconfig
