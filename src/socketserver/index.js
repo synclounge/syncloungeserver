@@ -11,7 +11,7 @@ import attachEventHandlers from './handlers';
 import { getHealth } from './state';
 
 const socketServer = ({
-  baseUrl, staticPath, port, pingInterval,
+  base_url: baseUrl, static_path: staticPath, port, ping_interval: pingInterval,
 }) => {
   http.globalAgent.keepAlive = true;
 
