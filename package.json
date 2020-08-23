@@ -1,6 +1,6 @@
 {
   "name": "syncloungesocket",
-  "version": "4.0.4",
+  "version": "0.0.0-semantically-released",
   "description": "SyncLounge socket server",
   "bin": "./dist/index.js",
   "scripts": {
