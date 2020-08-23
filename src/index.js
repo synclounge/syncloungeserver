@@ -12,9 +12,11 @@ const handle = (signal) => {
 process.on('SIGINT', handle);
 process.on('SIGTERM', handle);
 
+const parsedConfig = config.get();
+
 socketServer({
-  baseUrl: config.get('base_url'),
-  staticPath: config.get('static_path'),
-  port: config.get('port'),
-  pingInterval: config.get('ping_interval'),
+  baseUrl: parsedConfig.base_url,
+  staticPath: parsedConfig.static_path,
+  port: parsedConfig.port,
+  pingInterval: parsedConfig.ping_interval,
 });
