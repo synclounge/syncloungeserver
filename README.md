@@ -1,7 +1,6 @@
 ![SyncLounge](https://app.synclounge.tv/logo-long-dark.png)
 # SyncLounge Socket Server
-This is the socket server that goes along with the [SyncLounge webapp](https://github.com/samcm/synclounge)
-You can either run the socket on its own or have it serve the webapp files too.
+This is the socket server that goes along with the [SyncLounge webapp](https://github.com/ttshivers/synclounge). You probably want to check that out unless you just want to run this socket server, since the webapp also includes this.
 
 ## Installation
 ```sh
