@@ -2,6 +2,8 @@
 # SyncLounge Socket Server
 This is the socket server that goes along with the [SyncLounge webapp](https://github.com/ttshivers/synclounge). You probably want to check that out unless you just want to run this socket server, since the webapp also includes this.
 
+This socket server can be used as just a binary or can be included as a library, like it is with the [webapp](https://github.com/ttshivers/synclounge/blob/master/server.js)
+
 ## Installation
 ```sh
 npm install -g syncloungesocket
