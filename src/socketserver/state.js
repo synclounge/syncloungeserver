@@ -1,9 +1,11 @@
-import { getNumberFromUsername, guid } from './utils';
+import { v4 as uuidv4 } from 'uuid';
 
 const rooms = new Map();
 // Map from socket id to room name
 const socketRoomId = new Map();
 const socketLatencyData = new Map();
+
+const getNumberFromUsername = (username) => parseInt(username.match(/\((\d+)\)$/)[1], 10);
 
 export const getUserRoomId = (socketId) => socketRoomId.get(socketId);
 
@@ -166,7 +168,7 @@ export const updateSocketLatency = (socketId) => {
 };
 
 export const generateAndSetSocketLatencySecret = (socketId) => {
-  const secret = guid();
+  const secret = uuidv4();
   const latencyData = socketLatencyData.get(socketId);
   latencyData.secret = secret;
   latencyData.sentAt = Date.now();
