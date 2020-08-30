@@ -28,3 +28,4 @@ Dockerfile
 .editorconfig
 .commitlintrc.js
 .huskyrc
+.lintstagedrc
