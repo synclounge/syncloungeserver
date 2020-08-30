@@ -54,6 +54,9 @@ const socketServer = ({
     console.log('SyncLounge Server successfully started on port', port);
     console.log('Running with base URL:', baseUrl);
   });
+
+  // Return router so users can attach more routes if desired
+  return router;
 };
 
 export default socketServer;
