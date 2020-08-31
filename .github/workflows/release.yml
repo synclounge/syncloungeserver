@@ -96,11 +96,15 @@ jobs:
       -
         name: Cache Docker layers
         uses: actions/cache@v2
+        env:
+          cache-name: cache-buildx
         id: cache
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          key: ${{ runner.os }}-buildx-${{ hashFiles('**/package-lock.json') }}-${{ env.cache-name }}-${{ github.sha }}
           restore-keys: |
+            ${{ runner.os }}-buildx-${{ hashFiles('**/package-lock.json') }}-${{ env.cache-name }}
+            ${{ runner.os }}-buildx-${{ hashFiles('**/package-lock.json') }}
             ${{ runner.os }}-buildx-
       -
         name: Docker Buildx (build)
