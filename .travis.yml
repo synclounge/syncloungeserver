@@ -11,6 +11,9 @@ arch:
 
 os: linux  # different CPU architectures are only supported on Linux
 
+env:
+  - SKIP_BUILD=true
+
 script:
-  - npm run lint
+  - npm run lint -- --no-fix
   - npm run build
