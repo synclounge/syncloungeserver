@@ -5,7 +5,7 @@ WORKDIR /app
 RUN apk add --no-cache python make g++
 USER node
 COPY --chown=node:node package*.json ./
-RUN npm ci
+RUN SKIP_BUILD=true npm ci
 COPY --chown=node:node . .
 
 RUN npm run build

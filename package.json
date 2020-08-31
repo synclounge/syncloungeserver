@@ -9,7 +9,7 @@
     "start": "node dist/index.js",
     "lint": "eslint .",
     "dev": "nodemon --exec babel-node src",
-    "prepack": "npm run build"
+    "prepare": "if-env SKIP_BUILD=true && echo 'Skipping build' || npm run build"
   },
   "repository": {
     "type": "git",
@@ -32,6 +32,7 @@
     "@babel/node": "^7.10.5",
     "@commitlint/cli": "^9.1.2",
     "@commitlint/config-conventional": "^9.1.2",
+    "@delucis/if-env": "^1.1.2",
     "babel-eslint": "^10.1.0",
     "babel-preset-airbnb": "^5.0.0",
     "eslint": "^7.7.0",

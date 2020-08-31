@@ -20,8 +20,9 @@ jobs:
           key: client-${{ hashFiles('**/package-lock.json') }}
 
       - run: npm ci
-      - run: npm run lint
-      - run: npm run build
+        env:
+          SKIP_BUILD: true
+      - run: npm run lint -- --no-fix
 
   release:
     needs: test
@@ -37,6 +38,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: npm ci
+        env:
+          SKIP_BUILD: true
       - id: release
         name: semantic-release
         uses: ahmadnassri/action-semantic-release@v1
@@ -101,9 +104,9 @@ jobs:
         id: cache
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ hashFiles('**/package-lock.json') }}-${{ env.cache-name }}-${{ github.sha }}
+          key: ${{ runner.os }}-buildx-${{ hashFiles('**/package-lock.json') }}-${{ github.sha }}-${{ env.cache-name }}
           restore-keys: |
-            ${{ runner.os }}-buildx-${{ hashFiles('**/package-lock.json') }}-${{ env.cache-name }}
+            ${{ runner.os }}-buildx-${{ hashFiles('**/package-lock.json') }}-${{ github.sha }}
             ${{ runner.os }}-buildx-${{ hashFiles('**/package-lock.json') }}
             ${{ runner.os }}-buildx-
       -
