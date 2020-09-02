@@ -321,6 +321,31 @@ const syncFlexibilityUpdate = ({ server, socket, data: syncFlexibility }) => {
   });
 };
 
+const kick = ({ server, socket, data: id }) => {
+  if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+
+  const roomId = getUserRoomId(socket.id);
+  if (!isUserInRoom({ roomId, socketId: id })) {
+    socket.disconnect(true);
+    return;
+  }
+
+  log({
+    socketId: socket.id,
+    message: `Kicking: [${id}] ${getRoomUserData(id).username}`,
+  });
+
+  emitToSocket({
+    server,
+    socketId: id,
+    eventName: 'kicked',
+    data: null,
+  });
+};
+
 const eventHandlers = {
   join,
   slPong,
@@ -333,6 +358,7 @@ const eventHandlers = {
   setAutoHostEnabled,
   partyPause,
   disconnect,
+  kick,
 };
 
 const attachEventHandlers = ({ server, pingInterval }) => {
