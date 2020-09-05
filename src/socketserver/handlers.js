@@ -38,7 +38,7 @@ const join = ({
     if (!isRoomPasswordCorrect({ roomId, password })) {
       const message = password
         ? 'Password wrong'
-        : 'Password incorrect';
+        : 'Password required';
 
       emitToSocket({
         server,
