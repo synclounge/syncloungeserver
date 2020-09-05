@@ -19,8 +19,6 @@ const join = ({
     playerProduct, state, time, duration, playbackRate, media, syncFlexibility,
   },
 }) => {
-  // TODO: validate timeline thign
-
   if (!doesSocketHaveRtt(socket.id)) {
     // Ignore join if we don't have rtt yet.
     // Client should never do this so this just exists for bad actors
@@ -38,15 +36,21 @@ const join = ({
 
   if (roomExists) {
     if (!isRoomPasswordCorrect({ roomId, password })) {
+      const message = password
+        ? 'Password wrong'
+        : 'Password incorrect';
+
       emitToSocket({
         server,
         socketId: socket.id,
         eventName: 'joinResult',
         data: {
           success: false,
-          error: 'Password wrong',
+          error: message,
         },
       });
+
+      log({ socketId: socket.id, message: 'tried to join with wrong password' });
       return;
     }
   } else {
