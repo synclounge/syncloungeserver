@@ -152,7 +152,7 @@ jobs:
           push: true
           builder: ${{ steps.buildx.outputs.name }}
           context: .
-          platforms: ${{ steps.buildx.outputs.platforms }}
+          platforms: linux/amd64,linux/arm64,linux/ppc64le,linux/s390x,linux/386,linux/arm/v7,linux/arm/v6
           tags: |
             ${{ steps.prep.outputs.docker-image }}:latest
             ${{ steps.prep.outputs.docker-image }}:${{ needs.release.outputs.release-version }}
