@@ -87,13 +87,8 @@ jobs:
         name: Prepare
         id: prep
         run: |
-          DOCKER_IMAGE=${{ github.event.repository.full_name }}
-
-          TAGS="${DOCKER_IMAGE}:latest,${DOCKER_IMAGE}:${{ needs.release.outputs.release-version }},${DOCKER_IMAGE}:v${{ needs.release.outputs.release-version-major }}"
-
-          echo ::set-output name=tags::${TAGS}
-          echo ::set-output name=docker_image::${DOCKER_IMAGE}
-          echo ::set-output name=build_date::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          echo ::set-output name=docker-image::${{ github.event.repository.full_name }}
+          echo ::set-output name=build-date::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
 
       -
         name: Set up QEMU
@@ -138,12 +133,15 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           context: .
           platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/386,linux/ppc64le,linux/s390x
-          tags: ${{ steps.prep.outputs.tags }}
+          tags: |
+            ${{ steps.prep.outputs.docker-image }}:latest
+            ${{ steps.prep.outputs.docker-image }}:${{ needs.release.outputs.release-version }}
+            ${{ steps.prep.outputs.docker-image }}:v${{ needs.release.outputs.release-version-major }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
           build-args: |
             VERSION=${{ needs.release.outputs.release-version }}
-            BUILD_DATE=${{ steps.prep.outputs.build_date }}
+            BUILD_DATE=${{ steps.prep.outputs.build-date }}
             REVISION=${{ github.sha }}
 
       -
@@ -157,7 +155,7 @@ jobs:
       -
         name: Inspect
         run: |
-          docker buildx imagetools inspect ${{ steps.prep.outputs.docker_image }}:${{ needs.release.outputs.release-version }}
+          docker buildx imagetools inspect ${{ steps.prep.outputs.docker-image }}:${{ needs.release.outputs.release-version }}
 
       -
         name: Image digest
