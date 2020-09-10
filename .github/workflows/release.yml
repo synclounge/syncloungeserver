@@ -131,12 +131,12 @@ jobs:
 
       -
         name: Build and push
+        id: docker_build
         uses: docker/build-push-action@v2
         with:
           push: true
           builder: ${{ steps.buildx.outputs.name }}
           context: .
-          file: ./Dockerfile
           platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/386,linux/ppc64le,linux/s390x
           tags: ${{ steps.prep.outputs.tags }}
           cache-from: type=local,src=/tmp/.buildx-cache
@@ -147,6 +147,27 @@ jobs:
             REVISION=${{ github.sha }}
 
       -
-        name: Check manifest
+        name: Update repo description
+        uses: peter-evans/dockerhub-description@v2
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKERHUB_REPOSITORY: ${{ github.event.repository.full_name }}
+
+      -
+        name: Inspect
         run: |
           docker buildx imagetools inspect ${{ steps.prep.outputs.docker_image }}:${{ needs.release.outputs.release-version }}
+
+      -
+        name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+
+      -
+        name: Cache hit
+        run: echo ${{ steps.cache.outputs.cache-hit }}
+
+      -
+        name: Dump context
+        if: always()
+        uses: crazy-max/ghaction-dump-context@v1
