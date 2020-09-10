@@ -53,6 +53,9 @@ jobs:
             ${{ runner.os }}-docker-${{ env.cache-name }}-
             ${{ runner.os }}-docker-
 
+      - name: Cache hit
+        run: echo ${{ steps.cache.outputs.cache-hit }}
+
       - name: Build and push
         id: docker-build
         uses: docker/build-push-action@v2
@@ -74,9 +77,6 @@ jobs:
 
       - name: Image digest
         run: echo ${{ steps.docker-build.outputs.digest }}
-
-      - name: Cache hit
-        run: echo ${{ steps.cache.outputs.cache-hit }}
 
       - name: Dump context
         if: always()
