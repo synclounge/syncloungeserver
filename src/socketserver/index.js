@@ -36,6 +36,10 @@ const socketServer = ({
     path: urljoin(baseUrl, '/socket.io'),
   });
 
+  router.get('/health', (req, res) => {
+    res.json(getHealth());
+  });
+
   // Setup our router
   if (staticPath) {
     console.log('Serving static files at', staticPath);
@@ -45,10 +49,6 @@ const socketServer = ({
       res.send('You\'ve connected to the SLServer, you\'re probably looking for the webapp.');
     });
   }
-
-  router.get('/health', (req, res) => {
-    res.json(getHealth());
-  });
 
   server.listen(port, () => {
     console.log('SyncLounge Server successfully started on port', port);
