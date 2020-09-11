@@ -12,6 +12,7 @@ import { getHealth } from './state';
 
 const socketServer = ({
   base_url: baseUrl, static_path: staticPath, port, ping_interval: pingInterval,
+  preStaticInjection,
 }) => {
   http.globalAgent.keepAlive = true;
 
@@ -39,6 +40,13 @@ const socketServer = ({
   router.get('/health', (req, res) => {
     res.json(getHealth());
   });
+
+  if (preStaticInjection) {
+    // User provided function that does something with the router before the static middleware is
+    // added.
+    // Useful when overriding static files with a custom result
+    preStaticInjection(router);
+  }
 
   // Setup our router
   if (staticPath) {
