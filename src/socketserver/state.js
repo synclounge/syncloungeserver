@@ -104,7 +104,6 @@ export const formatUserData = ({
   playbackRate,
   state,
   // Adjust time by age if playing
-  // TODO: adjust time by recipient's latency
   time: state === 'playing'
     ? time + (getSocketLatency(recipientId) + Date.now() - updatedAt) * playbackRate
     : time,

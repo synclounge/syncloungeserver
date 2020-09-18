@@ -28,7 +28,6 @@ const join = ({
   }
 
   if (isUserInARoom(socket.id)) {
-    // TODO: remove listeners?
     removeUserAndUpdateRoom({ server, socketId: socket.id });
   }
 
