@@ -13,13 +13,13 @@ RUN npm prune --production
 
 # production environment
 FROM node:14.11.0-alpine3.11 as production-stage
-LABEL org.opencontainers.image.title="SyncLoungeSocket"
+LABEL org.opencontainers.image.title="SyncLoungeServer"
 LABEL org.opencontainers.image.description="Enjoy Plex with your friends. In Sync. Together."
 LABEL org.opencontainers.image.url="https://synclounge.tv/"
-LABEL org.opencontainers.image.source="https://github.com/ttshivers/syncloungesocket"
+LABEL org.opencontainers.image.source="https://github.com/synclounge/syncloungeserver"
 LABEL org.opencontainers.image.vendor="SyncLounge"
 LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.documentation="https://docs.synclounge.tv/"
+LABEL org.opencontainers.image.documentation="https://docs.synclounge.tv"
 
 RUN mkdir /app && chown -R node:node /app
 WORKDIR /app
