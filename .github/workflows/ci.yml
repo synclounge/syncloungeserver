@@ -39,6 +39,20 @@ jobs:
       - name: Available platforms
         run: echo ${{ steps.buildx.outputs.platforms }}
 
+      - name: Get platforms
+        uses: actions/github-script@v3
+        id: platforms
+        env:
+          DOCKER_CLI_EXPERIMENTAL: enabled
+        with:
+          result-encoding: string
+          script: |
+            const script = require(`${process.env.GITHUB_WORKSPACE}/.github/getDockerPlatforms.js`)
+            return script("Dockerfile", "${{ steps.buildx.outputs.platforms }}");
+
+      - name: Platforms
+        run: echo ${{ steps.platforms.outputs.result }}
+
       - name: Cache Docker layers
         uses: actions/cache@v2
         env:
@@ -62,7 +76,7 @@ jobs:
           push: true
           builder: ${{ steps.buildx.outputs.name }}
           context: .
-          platforms: linux/amd64,linux/arm64,linux/ppc64le,linux/s390x,linux/arm/v7,linux/arm/v6
+          platforms: ${{ steps.platforms.outputs.result }}
           tags: ${{ steps.prep.outputs.docker-image }}:${{ github.sha }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
