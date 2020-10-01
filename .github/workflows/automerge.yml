@@ -3,20 +3,16 @@ on:
   pull_request:
     types:
       - labeled
-      - unlabeled
       - synchronize
       - opened
       - edited
       - ready_for_review
       - reopened
       - unlocked
-  pull_request_review:
-    types:
-      - submitted
   check_suite:
     types:
       - completed
-  status: {}
+  # status: {}
 jobs:
   automerge:
     runs-on: ubuntu-latest
@@ -26,3 +22,5 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ secrets.PAT }}"
           MERGE_REMOVE_LABELS: "automerge"
+          # Using an unused label here to disable updating because using autoupdate action instead
+          UPDATE_LABELS: "disabled"
