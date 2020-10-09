@@ -1,5 +1,5 @@
 # build environment
-FROM node:14.13.0-alpine3.12 as build-stage
+FROM node:14.13.1-alpine3.12 as build-stage
 RUN mkdir /app && chown -R node:node /app
 WORKDIR /app
 RUN apk add --no-cache python3 make g++
@@ -12,7 +12,7 @@ RUN npm run build
 RUN npm prune --production
 
 # production environment
-FROM node:14.13.0-alpine3.12 as production-stage
+FROM node:14.13.1-alpine3.12 as production-stage
 LABEL org.opencontainers.image.title="SyncLoungeServer"
 LABEL org.opencontainers.image.description="Enjoy Plex with your friends. In Sync. Together."
 LABEL org.opencontainers.image.url="https://synclounge.tv"
