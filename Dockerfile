@@ -20,4 +20,4 @@ COPY --chown=node:node --from=build-stage /app/node_modules node_modules
 COPY --chown=node:node --from=build-stage /app/dist .
 
 ENTRYPOINT ["/sbin/tini", "--"]
-ENTRYPOINT ["/app/index.js"]
+CMD ["/app/index.js"]
