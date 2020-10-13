@@ -154,7 +154,7 @@ export const makeUserHost = (socketId) => {
 
 export const isUserInRoom = ({ roomId, socketId }) => rooms.get(roomId).users.has(socketId);
 
-export const getSocketPingSecret = (socketId) => socketLatencyData.get(socketId).secret;
+export const getSocketPingSecret = (socketId) => socketLatencyData.get(socketId)?.secret;
 
 export const updateSocketLatency = (socketId) => {
   const latencyData = socketLatencyData.get(socketId);
@@ -178,7 +178,7 @@ export const setSocketLatencyIntervalId = ({ socketId, intervalId }) => {
   socketLatencyData.get(socketId).intervalId = intervalId;
 };
 
-export const doesSocketHaveRtt = (socketId) => socketLatencyData.get(socketId).rtt != null;
+export const doesSocketHaveRtt = (socketId) => socketLatencyData.get(socketId)?.rtt != null;
 
 export const initSocketLatencyData = (socketId) => {
   socketLatencyData.set(socketId, {});
