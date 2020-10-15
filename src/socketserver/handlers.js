@@ -8,9 +8,9 @@ import {
 } from './state';
 
 import {
-  removeUserAndUpdateRoom, emitToSocket, log, emitAdjustedUserDataToRoom, announceNewHost,
-  emitPlayerStateUpdateToRoom, emitMediaUpdateToRoom, sendPing, emitToSocketRoom,
-  emitToUserRoomExcept,
+  removeUserAndUpdateRoom, emitToSocket, logSocket, emitAdjustedUserDataToRoom, announceNewHost,
+  emitPlayerStateUpdateToRoom, emitMediaUpdateToRoom, sendPing, emitToSocketRoom, logRoomStats,
+  emitToUserRoomExcept, logSocketStats, logRoomsStats, log,
 } from './actions';
 
 const join = ({
@@ -22,7 +22,7 @@ const join = ({
   if (!doesSocketHaveRtt(socket.id)) {
     // Ignore join if we don't have rtt yet.
     // Client should never do this so this just exists for bad actors
-    log({ socketId: socket.id, message: 'Socket tried to join without finishing initial ping/pong' });
+    logSocket({ socketId: socket.id, message: 'Socket tried to join without finishing initial ping/pong' });
     socket.disconnect(true);
     return;
   }
@@ -49,11 +49,11 @@ const join = ({
         },
       });
 
-      log({ socketId: socket.id, message: 'tried to join with wrong password' });
+      logSocket({ socketId: socket.id, message: 'tried to join with wrong password' });
       return;
     }
   } else {
-    log({ socketId: socket.id, message: `Creating room: ${roomId}` });
+    log('Creating room:', roomId);
 
     createRoom({
       id: roomId,
@@ -62,6 +62,8 @@ const join = ({
       isAutoHostEnabled: desiredAutoHostEnabled,
       hostId: socket.id,
     });
+
+    logRoomsStats();
   }
 
   addUserToRoom({
@@ -72,7 +74,7 @@ const join = ({
     playerProduct,
   });
 
-  log({ socketId: socket.id, message: `join "${roomId}"` });
+  logSocket({ socketId: socket.id, message: `join "${roomId}"` });
 
   updateUserPlayerState({
     socketId: socket.id, state, time, duration, playbackRate,
@@ -105,17 +107,25 @@ const join = ({
       ...getJoinData({ roomId, socketId: socket.id }),
     },
   });
+
+  logSocketStats();
+  logRoomStats(roomId);
 };
 
 const disconnect = ({ server, socket }) => {
-  log({ socketId: socket.id, message: 'disconnect' });
+  logSocket({ socketId: socket.id, message: 'disconnect' });
 
   if (isUserInARoom(socket.id)) {
-    removeUserAndUpdateRoom({ server, socketId: socket.id });
+    const roomId = removeUserAndUpdateRoom({ server, socketId: socket.id });
+    if (roomId != null) {
+      logRoomStats(roomId);
+    }
   }
 
   clearSocketLatencyInterval(socket.id);
   removeSocketLatencyData(socket.id);
+
+  logSocketStats();
 };
 
 const transferHost = ({ server, socket, data: desiredHostId }) => {
@@ -130,7 +140,7 @@ const transferHost = ({ server, socket, data: desiredHostId }) => {
     return;
   }
 
-  log({
+  logSocket({
     socketId: socket.id,
     message: `Transferring host to: [${desiredHostId}] ${getRoomUserData(desiredHostId).username}`,
   });
@@ -191,7 +201,7 @@ const mediaUpdate = ({
       data: socket.id,
     });
 
-    log({
+    logSocket({
       socketId: socket.id,
       message: 'Making host because user initiated media change',
     });
@@ -205,7 +215,7 @@ const slPong = ({
 }) => {
   const expectedSecret = getSocketPingSecret(socket.id);
   if (expectedSecret === null || secret !== expectedSecret) {
-    log({
+    logSocket({
       socketId: socket.id,
       message: `Incorrect secret. Expected "${expectedSecret}", got "${secret}"`,
     });
@@ -247,7 +257,7 @@ const setPartyPausingEnabled = ({ server, socket, data: isPartyPausingEnabled })
     return;
   }
 
-  log({
+  logSocket({
     socketId: socket.id,
     message: `set party pausing to: ${isPartyPausingEnabled}`,
   });
@@ -269,7 +279,7 @@ const setAutoHostEnabled = ({ server, socket, data: isAutoHostEnabled }) => {
     return;
   }
 
-  log({
+  logSocket({
     socketId: socket.id,
     message: `set auto host to: ${isAutoHostEnabled}`,
   });
@@ -336,7 +346,7 @@ const kick = ({ server, socket, data: id }) => {
     return;
   }
 
-  log({
+  logSocket({
     socketId: socket.id,
     message: `Kicking: [${id}] ${getRoomUserData(id).username}`,
   });
@@ -371,9 +381,10 @@ const attachEventHandlers = ({ server, pingInterval }) => {
       ? `${forwardedHeader} (${socket.conn.remoteAddress})`
       : socket.conn.remoteAddres;
 
-    log({ socketId: socket.id, message: `connection: ${addressInfo}` });
+    logSocket({ socketId: socket.id, message: `connection: ${addressInfo}` });
     initSocketLatencyData(socket.id);
     sendPing({ server, socketId: socket.id });
+    logSocketStats();
 
     Object.entries(eventHandlers).forEach(([name, handler]) => {
       socket.on(name, (data) => {
@@ -384,8 +395,6 @@ const attachEventHandlers = ({ server, pingInterval }) => {
         });
       });
     });
-
-    // Register handlers
   });
 };
 
