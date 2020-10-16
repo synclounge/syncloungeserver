@@ -1,21 +1,36 @@
 import {
-  isUserInARoom, getRoomUserData, getUserRoomId, makeUserHost,
-  getRoomSocketIds, removeUser, isRoomEmpty, removeRoom, getAnySocketIdInRoom,
-  generateAndSetSocketLatencySecret, formatUserData, getRoomHostId,
+  isUserInARoom, getRoomUserData, getUserRoomId, makeUserHost, getSocketCount, getRoomSize,
+  getRoomSocketIds, removeUser, isRoomEmpty, removeRoom, getAnySocketIdInRoom, getRoomCount,
+  generateAndSetSocketLatencySecret, formatUserData, getRoomHostId, getJoinedUserCount,
 } from './state';
 
-export const log = ({ socketId, message }) => {
+export const log = (...args) => {
+  console.log(new Date().toISOString(), ...args);
+};
+
+export const logSocket = ({ socketId, message }) => {
   const identifier = isUserInARoom(socketId)
     ? `[${socketId}] ${getRoomUserData(socketId).username}`
     : `[${socketId}]`;
 
-  console.log(new Date().toISOString(), identifier, ':', message);
+  log(identifier, ':', message);
+};
+
+export const logSocketStats = () => {
+  log('Connected:', getSocketCount(), '|', 'Joined:', getJoinedUserCount());
+};
+
+export const logRoomStats = (roomId) => {
+  log('Room:', roomId, '|', 'Users:', getRoomSize(roomId));
+};
+
+export const logRoomsStats = () => {
+  log('Rooms:', getRoomCount());
 };
 
 export const emitToSocket = ({
   server, socketId, eventName, data,
 }) => {
-  // console.log(data);
   server.to(socketId).emit(eventName, data);
 };
 
@@ -64,8 +79,11 @@ export const removeUserAndUpdateRoom = ({ server, socketId }) => {
   removeUser(socketId);
 
   if (isRoomEmpty(roomId)) {
+    log('Removing room:', roomId);
+
     removeRoom(roomId);
-    return;
+    logRoomsStats();
+    return null;
   }
 
   if (getRoomHostId(roomId) === socketId) {
@@ -73,7 +91,7 @@ export const removeUserAndUpdateRoom = ({ server, socketId }) => {
     const desiredHostId = getAnySocketIdInRoom(roomId);
     makeUserHost(desiredHostId);
 
-    log({
+    logSocket({
       socketId,
       message: `Transferring host to: [${desiredHostId}] ${getRoomUserData(desiredHostId).username}`,
     });
@@ -86,18 +104,18 @@ export const removeUserAndUpdateRoom = ({ server, socketId }) => {
         newHostId: desiredHostId,
       },
     });
-
-    return;
+  } else {
+    emitToRoom({
+      server,
+      roomId,
+      eventName: 'userLeft',
+      data: {
+        id: socketId,
+      },
+    });
   }
 
-  emitToRoom({
-    server,
-    roomId,
-    eventName: 'userLeft',
-    data: {
-      id: socketId,
-    },
-  });
+  return roomId;
 };
 
 export const sendPing = ({ server, socketId }) => {

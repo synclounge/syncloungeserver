@@ -144,7 +144,9 @@ export const removeRoom = (roomId) => {
 
 export const isUserHost = (socketId) => getUserRoom(socketId).hostId === socketId;
 
-export const isRoomEmpty = (roomId) => rooms.get(roomId).users.size <= 0;
+export const getRoomSize = (roomId) => rooms.get(roomId).users.size;
+
+export const isRoomEmpty = (roomId) => getRoomSize(roomId) <= 0;
 
 export const getAnySocketIdInRoom = (roomId) => rooms.get(roomId).users.keys().next().value;
 
@@ -206,12 +208,14 @@ export const clearSocketLatencyInterval = (socketId) => {
   clearInterval(socketLatencyData.get(socketId).intervalId);
 };
 
+export const getJoinedUserCount = () => socketRoomId.size;
+
 const getLoad = () => {
-  if (socketRoomId.size < 25) {
+  if (getJoinedUserCount() < 25) {
     return 'low';
   }
 
-  if (socketRoomId.size < 50) {
+  if (getJoinedUserCount() < 50) {
     return 'medium';
   }
 
@@ -221,3 +225,7 @@ const getLoad = () => {
 export const getHealth = () => ({
   load: getLoad(),
 });
+
+export const getSocketCount = () => socketLatencyData.size;
+
+export const getRoomCount = () => rooms.size;
