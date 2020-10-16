@@ -1,6 +1,6 @@
 import {
   doesRoomExist, isUserInARoom, getRoomUserData, isUserHost, removeSocketLatencyData,
-  getJoinData, isRoomPasswordCorrect, createRoom, addUserToRoom, clearSocketLatencyInterval,
+  getJoinData, createRoom, addUserToRoom, clearSocketLatencyInterval,
   getUserRoomId, isUserInRoom, updateUserMedia, makeUserHost, updateUserPlayerState,
   getSocketPingSecret, updateSocketLatency, setSocketLatencyIntervalId, doesSocketHaveRtt,
   setIsPartyPausingEnabledInSocketRoom, updateUserSyncFlexibility, setIsAutoHostEnabledInSocketRoom,
@@ -15,7 +15,7 @@ import {
 
 const join = ({
   server, socket, data: {
-    roomId, password, desiredUsername, desiredPartyPausingEnabled, desiredAutoHostEnabled, thumb,
+    roomId, desiredUsername, desiredPartyPausingEnabled, desiredAutoHostEnabled, thumb,
     playerProduct, state, time, duration, playbackRate, media, syncFlexibility,
   },
 }) => {
@@ -31,33 +31,11 @@ const join = ({
     removeUserAndUpdateRoom({ server, socketId: socket.id });
   }
 
-  const roomExists = doesRoomExist(roomId);
-
-  if (roomExists) {
-    if (!isRoomPasswordCorrect({ roomId, password })) {
-      const message = password
-        ? 'Password wrong'
-        : 'Password required';
-
-      emitToSocket({
-        server,
-        socketId: socket.id,
-        eventName: 'joinResult',
-        data: {
-          success: false,
-          error: message,
-        },
-      });
-
-      logSocket({ socketId: socket.id, message: 'tried to join with wrong password' });
-      return;
-    }
-  } else {
+  if (!doesRoomExist(roomId)) {
     log('Creating room:', roomId);
 
     createRoom({
       id: roomId,
-      password,
       isPartyPausingEnabled: desiredPartyPausingEnabled,
       isAutoHostEnabled: desiredAutoHostEnabled,
       hostId: socket.id,

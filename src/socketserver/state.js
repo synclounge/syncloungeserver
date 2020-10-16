@@ -76,14 +76,10 @@ export const addUserToRoom = ({
   });
 };
 
-export const isRoomPasswordCorrect = ({ roomId, password }) => password
-  === rooms.get(roomId).password;
-
 export const createRoom = ({
-  id, password, isPartyPausingEnabled, isAutoHostEnabled, hostId,
+  id, isPartyPausingEnabled, isAutoHostEnabled, hostId,
 }) => {
   rooms.set(id, {
-    password,
     isPartyPausingEnabled,
     isAutoHostEnabled,
     hostId,
