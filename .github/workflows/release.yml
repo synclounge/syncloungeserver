@@ -209,9 +209,9 @@ jobs:
       - name: Update repo description
         uses: peter-evans/dockerhub-description@v2.4.1
         env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKERHUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-          DOCKERHUB_REPOSITORY: ${{ github.event.repository.full_name }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: ${{ github.event.repository.full_name }}
 
       - name: Inspect
         run: |
