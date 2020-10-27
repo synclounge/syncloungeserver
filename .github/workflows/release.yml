@@ -207,7 +207,7 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
 
       - name: Update repo description
-        uses: peter-evans/dockerhub-description@v2.4.0
+        uses: peter-evans/dockerhub-description@v2.4.1
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
