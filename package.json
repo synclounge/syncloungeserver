@@ -36,7 +36,7 @@
     "babel-eslint": "^10.1.0",
     "babel-preset-airbnb": "^5.0.0",
     "eslint": "^7.12.1",
-    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.22.1",
     "husky": "^4.3.0",
     "lint-staged": "^10.5.1",
