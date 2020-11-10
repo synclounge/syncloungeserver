@@ -26,7 +26,6 @@ const socketServer = ({
 
   const socketio = io({
     serveClient: false,
-    cookie: false,
     // Use websockets first
     transports: ['websockets', 'polling'],
   });
