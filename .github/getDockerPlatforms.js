@@ -3,10 +3,6 @@ const { execSync } = require('child_process');
 
 const fromRegex = /^\s*FROM\s+(?:--platform\=\S+\s+)?(?<tag>\S+)\s+as\s+(?<alias>\S+)\s*$/mg
 
-const findLastFromLineIndex = (lines) => lines.reduce((acc, line, index) => (
-  line.startsWith('FROM') ? index : acc
-), 0);
-
 const findBaseImage = (fromGroups, tag) => {
   const origin = fromGroups.find((group) => group.alias === tag);
   return origin
