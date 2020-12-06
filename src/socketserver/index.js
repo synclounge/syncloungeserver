@@ -5,7 +5,7 @@ import cors from 'cors';
 import http from 'http';
 import urljoin from 'url-join';
 
-import io from 'socket.io';
+import { Server } from 'socket.io';
 import attachEventHandlers from './handlers';
 
 import { getHealth } from './state';
@@ -24,17 +24,17 @@ const socketServer = ({
 
   app.use(baseUrl, router);
 
-  const socketio = io({
+  const socketio = new Server(server, {
+    path: urljoin(baseUrl, '/socket.io'),
+    cors: {
+      origin: '*',
+    },
     serveClient: false,
     // Use websockets first
-    transports: ['websockets', 'polling'],
+    transports: ['websocket', 'polling'],
   });
 
   attachEventHandlers({ server: socketio, pingInterval });
-
-  socketio.attach(server, {
-    path: urljoin(baseUrl, '/socket.io'),
-  });
 
   router.get('/health', (req, res) => {
     res.json(getHealth());
