@@ -51,7 +51,7 @@
     "uuid": "^8.3.2"
   },
   "optionalDependencies": {
-    "bufferutil": "^4.0.4",
+    "bufferutil": "^4.0.5",
     "utf-8-validate": "^5.0.6"
   },
   "files": [
