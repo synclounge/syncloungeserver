@@ -108,8 +108,8 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo
             };
-            await github.git.deleteRef({ ...repo, ref: tag }).catch(() => {});
-            await github.git.createRef({ ...repo, ref: `refs/${tag}` , sha: process.env.GITHUB_SHA });
+            await github.rest.git.deleteRef({ ...repo, ref: tag }).catch(() => {});
+            await github.rest.git.createRef({ ...repo, ref: `refs/${tag}` , sha: process.env.GITHUB_SHA });
 
   release-docker:
     needs: release-semantic
@@ -124,7 +124,7 @@ jobs:
         uses: actions/github-script@v6.1.0
         with:
           script: |
-            const repo = await github.repos.get(context.repo)
+            const repo = await github.rest.repos.get(context.repo)
             return repo.data
 
       - name: Prepare
