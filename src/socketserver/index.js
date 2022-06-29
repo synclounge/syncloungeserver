@@ -3,8 +3,8 @@
 import express from 'express';
 import cors from 'cors';
 import http from 'http';
-import urljoin from 'url-join';
 
+import { URL } from 'node:url';
 import { Server } from 'socket.io';
 import attachEventHandlers from './handlers';
 
@@ -25,7 +25,7 @@ const socketServer = ({
   app.use(baseUrl, router);
 
   const socketio = new Server(server, {
-    path: urljoin(baseUrl, '/socket.io'),
+    path: new URL('socket.io', baseUrl).toString(),
     cors: {
       origin: '*',
     },
