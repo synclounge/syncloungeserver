@@ -29,7 +29,7 @@
   "devDependencies": {
     "@babel/cli": "^7.19.3",
     "@babel/core": "^7.19.6",
-    "@babel/node": "^7.19.1",
+    "@babel/node": "^7.20.0",
     "@commitlint/cli": "^17.1.2",
     "@commitlint/config-conventional": "^17.1.0",
     "@delucis/if-env": "^1.1.2",
