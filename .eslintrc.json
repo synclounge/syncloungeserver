@@ -9,7 +9,7 @@
     "Atomics": "readonly",
     "SharedArrayBuffer": "readonly"
   },
-  "parser": "babel-eslint",
+  "parser": "@babel/eslint-parser",
   "rules": {
     "no-console": "off"
   }
