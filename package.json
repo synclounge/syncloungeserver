@@ -46,7 +46,7 @@
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "nconf": "^0.12.0",
-    "socket.io": "^4.6.1",
+    "socket.io": "^4.7.2",
     "uuid": "^9.0.1"
   },
   "optionalDependencies": {
