@@ -1,5 +1,5 @@
 # base environment
-FROM node:19.2.0-alpine3.15 as base-stage
+FROM node:16.15.0-alpine3.15 as base-stage
 RUN mkdir /app && chown -R node:node /app
 WORKDIR /app
 
