@@ -28,7 +28,7 @@
   "homepage": "https://github.com/synclounge/syncloungeserver#readme",
   "devDependencies": {
     "@babel/cli": "^7.23.9",
-    "@babel/core": "^7.23.9",
+    "@babel/core": "^7.24.0",
     "@babel/eslint-parser": "^7.23.10",
     "@babel/node": "^7.23.9",
     "@commitlint/cli": "^19.0.3",
