@@ -47,7 +47,7 @@
     "express": "^4.21.1",
     "nconf": "^0.12.1",
     "socket.io": "^4.8.1",
-    "uuid": "^10.0.0"
+    "uuid": "^11.0.4"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.9",
