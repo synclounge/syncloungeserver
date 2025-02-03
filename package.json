@@ -31,7 +31,7 @@
     "@babel/core": "^7.26.7",
     "@babel/eslint-parser": "^7.26.5",
     "@babel/node": "^7.26.0",
-    "@commitlint/cli": "^19.6.1",
+    "@commitlint/cli": "^19.7.1",
     "@commitlint/config-conventional": "^19.6.0",
     "@delucis/if-env": "^1.1.2",
     "babel-preset-airbnb": "^5.0.0",
