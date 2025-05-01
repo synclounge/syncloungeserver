@@ -30,7 +30,7 @@
     "@babel/cli": "^7.27.1",
     "@babel/core": "^7.27.1",
     "@babel/eslint-parser": "^7.27.1",
-    "@babel/node": "^7.26.0",
+    "@babel/node": "^7.27.1",
     "@commitlint/cli": "^19.8.0",
     "@commitlint/config-conventional": "^19.8.0",
     "@delucis/if-env": "^1.1.2",
