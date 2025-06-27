@@ -35,7 +35,7 @@
     "@commitlint/config-conventional": "^19.8.1",
     "@delucis/if-env": "^1.1.2",
     "babel-preset-airbnb": "^5.0.0",
-    "eslint": "^8.57.0",
+    "eslint": "^9.30.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.32.0",
     "husky": "^8.0.3",
